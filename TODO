@@ -1,0 +1,62 @@
+TODO
+	DEFINITION
+		-a node : a node always contains a key string, can have 0 to infinite number of child, and can store a value or not
+		-a value node : a node that contains a value
+		-an intermediate node : a node with at least one child
+		-a non value node : it is an intermediate node without any value and with at least 2 childs
+
+		-a string : an array of caracters, the array can be empty (no definition about caracter is needed)
+		-a prefix string : 
+		-a complete string : a string is a complete string iff there is a node in the tree such as the concatenation of all the parent key string with the string of this node give the original string
+		-a value string : it is a complete string, and the node found contains a value		
+		-a final string : it is a complete string, and the node found does not have any child
+
+#
+# TODO voir ce qu'il y a de recuperable dans ces defs ci
+#
+# kind of node : "Value Node" (self.value != None) or "None node" (self.value == None)
+# key properties : all node has a key with at most 1 character
+# intermediate node properties : a None node is always an intermediate node, never an end node. A Value node is a Value node or a None node
+# end node properties : all the end node are Value node
+# child properties : a None node has at least two children, a value node has zero or more child even if it is an intermediate node
+#
+	TEST
+		-class tries 
+			-test with a non empty root
+
+	IMPROVMENT
+		-improve the documention outside and inside each class, function, piece of code, ...
+			-rename if necessary (don't be afraid)
+		-"remove" function (i have a bad feeling about this function, check it)
+			this function can't create intermediate node without content and with only one child
+		-eviter les appels recursifs au max
+		-permettre le stockage de valeur None
+		-transformer les inner function en fonction de classe avec un prefixe _
+
+	NEW FEATURE
+		-create a setup.py
+		-create a example.py
+		-create a test_unit.py
+
+	BUG (there is probably some bugs, fint them !!! )
+		-
+
+	NEEDED (not know if present or not)
+		-add/remove/update
+
+		-il devrait y avoir moyen de combiner les methodes ci dessous pour recuperer les infos en un seul lookup, afin d'eviter de faire 5 fois la même recherche
+			-faire une classe lookup qui stocke toutes les informations ci dessous (enfin toute celle accessible en lookup)
+			-peu etre qu'une classe est too much
+
+		-from a string of any size (even 0 or 1), be able to get these information
+			-isACompleteString(str)
+			-isAValueString(str)
+			-isAFinalString(str)
+	
+			-getNextNodeFromString(str) : return the next node that contains a complete string in the tree from the given string prefix
+				The looking process is always from top to bottom
+				return None if the string is not the prefix of anything
+
+			-getEveryValueNodeFromString(str) : return a list of nodes with a value that have the str as prefix key
+				-the given str is maybe a value string, then add its corresponding node in the list
+

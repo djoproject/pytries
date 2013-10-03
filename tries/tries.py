@@ -1,4 +1,5 @@
 #!/usr/bin/python2.6
+# -*- coding: utf-8 -*- 
 
 #Copyright (C) 2012 Jonathan Delvaux <jonathan.delvaux@uclouvain.be>
 
@@ -15,29 +16,8 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-#
-# kind of node : "Value Node" (self.value != None) or "None node" (self.value == None)
-# key properties : all node has a key with at most 1 character
-# intermediate node properties : a None node is always an intermediate node, never an end node. A Value node is a Value node or a None node
-# end node properties : all the end node are Value node
-# child properties : a None node has at least two children, a value node has zero or more child even if it is an intermediate node
-#
-# TODO verifier si tout fonctionne avec une racine differente de ""
-#
-
 from exception import triesException
-
-def noneFunc(*args):
-    return None
-
-def charInCommons(char1, char2):
-    common = 0
-    for i in range(0,min(len(char1),len(char2))):
-        if char1[i] != char2[i]:
-            break
-        common += 1
-    
-    return common
+from utils import noneFunc, charInCommons
 
 class tries():
     
@@ -53,18 +33,22 @@ class tries():
         self.childs = []
         self.value = value
         self.parent = parent
-    
+
+########### MAJOR FUNCTION (remove/update/insert) #######################################################################################################################################################
+
     #
     #
     #
     def remove(self, key):
+        #recherche du noeud exacte
+        Node = self.searchNode(key,returnNode)
 
-        def exact(Node,prefix):
-            return Node
-        
-        Node = self.searchNode(key,exact)
+        #le noeud doit exister et etre un value node
         if Node != None and Node.value != None:
-            
+
+            #CAS 1 : suppression de la racine
+                #TODO euuhh, pas convaincu de la gestion de ce cas...
+                    #le root devrait etre recalcule avec la plus grande racine commune
             if Node.parent == None:
                 if len(Node.key) > 0:
                     for child in Node.childs:
@@ -72,21 +56,25 @@ class tries():
                         
                     Node.key = ""
                 Node.value = None
-
+            
+            #CAS 2 : only one child
             elif len(Node.childs) == 1:
                 Node.childs[0].key = Node.key + Node.childs[0].key
                 Node.parent.childs.remove(Node)
                 Node.parent.childs.append(Node.childs[0])
                 Node.childs[0].parent = Node.parent
                 del Node
-                
+            
+            #CAS 3 : more than one child
+                #TODO meme chose qu'au CAS 1
             elif len(Node.childs) > 1:
                 Node.value = None
-                
+            
+            #CAS 4 : final node
             else: #len(Node.childs) == 0
                 Node.parent.childs.remove(Node)
 
-                #cas limite, a t'on un parent None Node desequilibre?
+                #cas limite, a t'on un parent no value Node desequilibre?
                 parent = Node.parent
                 if parent.value == None and len(parent.childs) == 1:
                     
@@ -109,19 +97,13 @@ class tries():
     #
     #
     def update(self, key, newValue):
-
-        def exact(Node,prefix):
-            return Node
-            
-        Node = self.searchNode(key,exact)
+        Node = self.searchNode(key,returnNode)
         if Node != None and Node.value != None:
             Node.value = newValue
             return Node
             
         raise triesException("key not found")
-            
-            
-        
+
     #
     # @return the inserted node
     # @exception triesException if insertion failed
@@ -129,7 +111,7 @@ class tries():
     def insert(self,key, value):
         
         if value == None:
-            raise triesException("the inserted value can't be none")
+            raise triesException("the inserted value can't be none") #TODO why not
         
         def exact(Node,key):
             if Node.value != None : #is it a value node?
@@ -154,7 +136,6 @@ class tries():
             
             return Node
 
-            
         def noMatchChild(Node,key,totalCount):
             newNode = tries(key[totalCount:],Node)
             Node.childs.append(newNode)
@@ -183,44 +164,25 @@ class tries():
         Node = self.searchNode(key,exact,partial,noMatchChild,false)
         Node.value = value
         return Node
-    
+
+############ SEARCH FUNCTION #########################################################################################################################################################################
+
     #
     # @return any kind of node
     #
     def search(self,key):
-        def exact(Node,key):
-            return Node
-            
-        return self.searchNode(key,exact)
+        return self.searchNode(key,returnNode)
     
     #
     # @return a value node
     #
-    def searchUniqueFromPrefix(self,prefix):
-        def exact(Node,prefix):
-            if Node.value != None:
-                return Node
+    def searchUniqueFromPrefix(self,prefix):        
+        node = self.searchNode(prefix,returnNode,returnNode)
+        if Node.value != None:
+            return Node
             
-            #if the current node has a None value, it's an intermediate node with at most two children
-            raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
-        
-        def partial(Node,prefix,count,totalCount):
-            return exact(Node,prefix)
-        
-        return self.searchNode(prefix,exact,partial)
-        
-        
-    #
-    # @return a dictionnary with all the key/value or None if there is no result
-    #
-    def getKeyListFromPrefix(self,prefix):
-        def exact(Node,prefix):
-            return Node.getAllPossibilities()
-            
-        def partial(Node,prefix,count,totalCount):
-            return Node.getAllPossibilities()
-            
-        return self.searchNode(prefix,exact,partial)
+        #if the current node has a None value, it's an intermediate node with at most two children
+        raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
     
     #
     #
@@ -261,8 +223,19 @@ class tries():
                 
                 return falseResult(currentNode,prefix,count,totalCount) # bee != bear
             
-                
-    
+############ MISC FUNCTION #########################################################################################################################################################################
+    #
+    # @return a dictionnary with all the key/value or None if there is no result
+    #
+    def getKeyListFromPrefix(self,prefix):
+        def exact(Node,prefix):
+            return Node.getAllPossibilities()
+            
+        def partial(Node,prefix,count,totalCount):
+            return Node.getAllPossibilities()
+            
+        return self.searchNode(prefix,exact,partial)
+
     #
     # build a dictionnary (key + value) with all the combinatories possible from this node
     #
@@ -324,25 +297,6 @@ class tries():
 
         return s
         
-                
-            
-
-    #
-    #
-    #
-    def __repr__(self):
-        
-        if self.value == None:
-            if self.parent == None:
-                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
-            else:
-                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
-        else:
-            if self.parent == None:
-                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
-            else:
-                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
-
     #
     #
     #
@@ -372,7 +326,26 @@ class tries():
             count += c.countValue()
             
         return count
-    
+
+############ __ FUNCTION __ #########################################################################################################################################################################
+
+    #
+    #
+    #
+    def __repr__(self):
+        
+        if self.value == None:
+            if self.parent == None:
+                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
+            else:
+                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
+        else:
+            if self.parent == None:
+                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
+            else:
+                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
+
+
     #TODO faire les equals, hash, etc..
         
         
