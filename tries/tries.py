@@ -22,9 +22,15 @@ from utils import noneFunc, charInCommons
 class tries():
     
     #
+    # constructor of the class tries
     #
+    # @parameter self, the reference of the class object
+    # @parameter key, the part of the key string stored in the current node
+    # @parameter parent, the parent node in the tree
+    # @parameter value, the value stored in the key
     #
     def __init__(self, key, parent = None, value = None):
+        "init the node with a key, and maybe a parent and a value"
         #print "{"+key+"}"
         #if key == None or type(key) != str or len(key) == 0:
         # raise triesException("the inserted key must be a string with a length bigger than zero")
@@ -37,13 +43,17 @@ class tries():
 ########### MAJOR FUNCTION (remove/update/insert) #######################################################################################################################################################
 
     #
-    #
+    # method to remove a key string and its value from the tree
+    # 
+    # @param key, the key of the node to remove
+    # @exception triesException if no node exists with the specified key
     #
     def remove(self, key):
-        #recherche du noeud exacte
+        "remove a node with a specific key in the tree"
+        #search the specific node
         Node = self.searchNode(key,returnNode)
 
-        #le noeud doit exister et etre un value node
+        #the node must exist and be a value node
         if Node != None and Node.value != None:
 
             #CAS 1 : suppression de la racine
@@ -94,7 +104,11 @@ class tries():
         raise triesException("key not found")
         
     #
+    # update the value of the node corresponding to the key
     #
+    # @param key, the key of the final node to update
+    # @param newValue, the value to change in the node corresponding of the key
+    # @return the updated node
     #
     def update(self, key, newValue):
         Node = self.searchNode(key,returnNode)
@@ -105,6 +119,8 @@ class tries():
         raise triesException("key not found")
 
     #
+    # insert a new couple key/value in the tree
+    #
     # @return the inserted node
     # @exception triesException if insertion failed
     #
@@ -113,34 +129,45 @@ class tries():
         if value == None:
             raise triesException("the inserted value can't be none") #TODO why not
         
+        #CASE 1 : perfect match
         def exact(Node,key):
+            #if the current node is a value node, can't insert the new value
             if Node.value != None : #is it a value node?
                 raise triesException("the inserted key already exists")
 
             return Node
-            
+        
+        #CASE 2  : partial match, the key is a prefix of another key
         def partial(Node,key,count,totalCount):
+            #split the key string of the old node and create a new value node with the existing value
             tempTries = tries(Node.key[count:], Node, Node.value)
+            
+            #the new node become the parent of the existing childs
             tempTries.childs = Node.childs
             
+            #update the parent field of the childs
             for child in tempTries.childs:
                 child.parent = tempTries
             
+            #TODO to check, is this line usefull ? because the value is already transfered in the constructor method
             tempTries.value = Node.value
             
+            #update the key of the old node
             Node.key = Node.key[:count]
 
-            #le noeud courant recupere la nouvelle valeur
-            #Node.value = value
+            #the only child of the old node is the new node
             Node.childs = [tempTries]
             
+            #return the old node, it will contain the new value
             return Node
 
+        #CASE 3 :
         def noMatchChild(Node,key,totalCount):
             newNode = tries(key[totalCount:],Node)
             Node.childs.append(newNode)
             return newNode
-            
+        
+        #CASE 4 : 
         def false(Node,key,count,totalCount):
             tempTries = tries(Node.key[count:], Node, Node.value)
             tempTries.childs = Node.childs
@@ -160,9 +187,12 @@ class tries():
             Node.value = None
             
             return newTries
-            
+        
+        #assign the value
         Node = self.searchNode(key,exact,partial,noMatchChild,false)
         Node.value = value
+        
+        #return the node
         return Node
 
 ############ SEARCH FUNCTION #########################################################################################################################################################################
