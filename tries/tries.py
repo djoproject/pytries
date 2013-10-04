@@ -54,55 +54,109 @@ class tries():
         Node = self.searchNode(key,returnNode)
 
         #the node must exist and be a value node
-        if Node != None and Node.value != None:
+        if Node == None or Node.value == None:
+		    raise triesException("key not found")
 
-            #CAS 1 : suppression de la racine
-                #TODO euuhh, pas convaincu de la gestion de ce cas...
-                    #le root devrait etre recalcule avec la plus grande racine commune
+        ### Case 1 : No Child ###
+        if len(Node.childs) == 0:
+            ## Case 1.1 : root node ##
             if Node.parent == None:
-                if len(Node.key) > 0:
-                    for child in Node.childs:
-                        child.key = Node.key + child.key
-                        
-                    Node.key = ""
+                Node.key = ""
                 Node.value = None
-            
-            #CAS 2 : only one child
-            elif len(Node.childs) == 1:
-                Node.childs[0].key = Node.key + Node.childs[0].key
-                Node.parent.childs.remove(Node)
-                Node.parent.childs.append(Node.childs[0])
-                Node.childs[0].parent = Node.parent
-                del Node
-            
-            #CAS 3 : more than one child
-                #TODO meme chose qu'au CAS 1
-            elif len(Node.childs) > 1:
-                Node.value = None
-            
-            #CAS 4 : final node
-            else: #len(Node.childs) == 0
+            ## Case 1.2 : no root node ##
+            else:
+                #remove node from parent list
                 Node.parent.childs.remove(Node)
 
-                #cas limite, a t'on un parent no value Node desequilibre?
+                #is the parent a non value intermediate node ?
                 parent = Node.parent
                 if parent.value == None and len(parent.childs) == 1:
                     
+                    #concat the parent key with the node key
                     parent.childs[0].key = parent.key + parent.childs[0].key
 
-                    #on est a la racine?
+                    #the parent is the root ?
                     if parent.parent == None:
                         parent.key = ""
                     else:
+                        #add the child in the great parent
                         parent.parent.childs.remove(parent)
                         parent.parent.childs.append(parent.childs[0])
                         parent.childs[0].parent = parent.parent
+                        
+                        #remove the intermediate parent node
                         del parent
+                        
+                #remove the node
                 del Node
-            return
+                
+        ### Case 2 : One Child ###
+            #the current node become its child and its child disappear
+            #there is no different process to do if the node is root
+        elif len(Node.childs) == 1:
+            #concat key
+            Node.key    = Node.key + Node.childs[0].key
             
-        raise triesException("key not found")
+            #merge node
+            Node.value  = Node.childs[0].value
+            Node.childs = Node.childs[0].childs
+            
+            #TODO del the child
+                
+        ### Case 3 : More than one Child ###
+        else:
+            if Node.parent == None:
+                pass  #TODO
+            else:
+                pass  #TODO
+                
+        ####################################################################################
+
+        #CAS 1 : suppression de la racine
+            #TODO euuhh, pas convaincu de la gestion de ce cas...
+                #le root devrait etre recalcule avec la plus grande racine commune
+                    #juste s'il y a un unique intermediate child, pas d'autre cas possible normalement
+        if Node.parent == None:
+            if len(Node.key) > 0:
+                for child in Node.childs:
+                    child.key = Node.key + child.key
+                    
+                Node.key = ""
+            Node.value = None
         
+        #CAS 2 : only one child
+        elif len(Node.childs) == 1:
+            Node.childs[0].key = Node.key + Node.childs[0].key
+            Node.parent.childs.remove(Node)
+            Node.parent.childs.append(Node.childs[0])
+            Node.childs[0].parent = Node.parent
+            del Node
+        
+        #CAS 3 : more than one child
+            #TODO meme chose qu'au CAS 1
+        elif len(Node.childs) > 1:
+            Node.value = None
+        
+        #CAS 4 : final node
+        else: #len(Node.childs) == 0
+            Node.parent.childs.remove(Node)
+
+            #cas limite, a t'on un parent no value Node desequilibre?
+            parent = Node.parent
+            if parent.value == None and len(parent.childs) == 1:
+                
+                parent.childs[0].key = parent.key + parent.childs[0].key
+
+                #on est a la racine?
+                if parent.parent == None:
+                    parent.key = ""
+                else:
+                    parent.parent.childs.remove(parent)
+                    parent.parent.childs.append(parent.childs[0])
+                    parent.childs[0].parent = parent.parent
+                    del parent
+            del Node
+
     #
     # update the value of the node corresponding to the key
     #

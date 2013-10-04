@@ -1,36 +1,53 @@
 TODO
 	DEFINITION
-		-a node : a node always contains a key string, can have 0 to infinite number of child, and can store a value or not
-		-a value node : a node that contains a value
-		-an intermediate node : a node with at least one child
-		-a non value node : it is an intermediate node without any value and with at least 2 childs
+		-a node               : a node always contains a key string, can have 0 to infinite number of child (another node), can have 0 or 1 parent (another node), and can store a value or not
+		-a child node         : a child node is a standard node, but the node reference stored in the variable parent point to another node that store a reference of the current node in a child list
+		-a parent node        : each node reference stored in the variable childs point to some nodes who store the reference of the current node in the variable parent
+		-a value node         : a node that contains a value (self.value != None)
+		-an intermediate node : a node with at least one child (len(self.childs) > 0)
+		-a non value node     : it is an intermediate node without any value and with at least 2 childs (self.value == None and len(self.childs) > 1)
+		-an end node          : it is a value node without any childs (self.value != None and len(self.childs) == 0)
 
-		-a string : an array of caracters, the array can be empty (no definition about caracter is needed)
-		-a prefix string : 
-		-a complete string : a string is a complete string iff there is a node in the tree such as the concatenation of all the parent key string with the string of this node give the original string
-		-a value string : it is a complete string, and the node found contains a value		
-		-a final string : it is a complete string, and the node found does not have any child
+		-a string          : an array of caracters, the array can be empty (no definition about caracter is needed)
+		-a key string      : part of a path string stored in a tries node, a key string must always at least 1 caracter, except for the root node
+		-a path string     : a path string is a string composed with the contatenation of 1 or more linked key string.  The node that contains the last part of the path string is the node linked to this path
+		-a prefix string   : a prefix string is a prefix of a path string
+		-a complete string : a string is a complete string iff there is a node in the tree such as the concatenation of all the parent key string with the key string of this node give the original string
+		    #redondance avec path string, faire un mix ? complete path string (et donc incomplete path string pour prefix string ?)
+		-a irrelevant string : not a complete string nor a incomplete string
+		-a value string    : it is a complete string, and the node found contains a value
+		-a final string    : it is a complete string, and the node found does not have any child
 
-#
-# TODO voir ce qu'il y a de recuperable dans ces defs ci
-#
-# kind of node : "Value Node" (self.value != None) or "None node" (self.value == None)
-# key properties : all node has a key with at most 1 character
-# intermediate node properties : a None node is always an intermediate node, never an end node. A Value node is a Value node or a None node
-# end node properties : all the end node are Value node
-# child properties : a None node has at least two children, a value node has zero or more child even if it is an intermediate node
-#
 	TEST
 		-class tries 
 			-test with a non empty root
+			    -an empty root that become a non empty root
+			    -a non empty root that become again an empty root
+			
+		-remove/search/insert
+		    -faire des jeux de tests permettant de tester tous les cas de figure
+		    
+        -simple test (python unit test)
+            -random insert/remove/search/...
+                -ensuite la structure de l'arbre doit etre coherent
+                    -pas de noeud intermediate avec 1 seul fils
+                    -toutes les chaines inserees doivent pointer sur un value node  
+                        -et inverse, pas de value node sans chaine inseree
+                    -seul le root peut avoir une chaine vide
+                    -insertion de chaine vide
 
 	IMPROVMENT
 		-improve the documention outside and inside each class, function, piece of code, ...
 			-rename if necessary (don't be afraid)
 		-"remove" function (i have a bad feeling about this function, check it)
 			this function can't create intermediate node without content and with only one child
+				ok
+			But some optimisation are possible
+			    TO FINISH
+		-check the other major function insert/search
 		-eviter les appels recursifs au max
 		-permettre le stockage de valeur None
+		    -faire des methodes isValueNode, setValue, unsetValue
 		-transformer les inner function en fonction de classe avec un prefixe _
 
 	NEW FEATURE
