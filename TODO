@@ -28,6 +28,19 @@ TODO
 		    -faire des jeux de tests permettant de tester tous les cas de figure
 		    
         -simple test (python unit test)
+            insert
+                bear        (insert in empty tree)
+                    be      (partial match)
+                    bearor  (no match child)
+                    beer    (false result)
+        
+                test d'insert d'une chaine existante
+                    genre beer
+                    
+                test sur chaine vide
+                
+                test sur root
+        
             -random insert/remove/search/...
                 -ensuite la structure de l'arbre doit etre coherent
                     -pas de noeud intermediate avec 1 seul fils
