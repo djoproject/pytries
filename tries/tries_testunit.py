@@ -6,43 +6,58 @@ import unittest
 from tries import tries
 
 class TriesTestState(unittest.TestCase):
+    
+    ### called before each test
     def setUp(self):
-        self.insertedKey = []
+        self.insertedKey = ["bear", "be", "bearor", "beer", ""]
         self.t           = tries()
         
+        for key in self.insertedKey:
+            self.t.insert(key,key)
+
+#########
+    def test_traversal(self):
+        print ""
+        print self.t.traversal()
+        print ""
+
+######### an intermediate node without value can't have less than 2 childs
+
     def test_No1childInNonValueIntermediateNode(self):
-        pass
-        
+        self._inner_No1childInNonValueIntermediateNode(self.t)
+    
+    def _inner_No1childInNonValueIntermediateNode(self, node):
+        if not node.isValueSet() and node.parent != None:
+            self.assertTrue( len(node.childs) > 1)
+            
+        for c in node.childs:
+            self._inner_No1childInNonValueIntermediateNode(c)
+    
+######### only the root can have an empty string as key
+
     def test_OnlyRootCanHaveEmptyString(self):
-        pass
+        self._inner_OnlyRootCanHaveEmptyString(self.t)
+    
+    def _inner_OnlyRootCanHaveEmptyString(self, node):
+        if node.parent != None:
+            self.assertTrue( node.key != None and node.key != "")
+
+        for c in node.childs:
+            self._inner_No1childInNonValueIntermediateNode(c)
+
+######### every inserted key must be in the tree with 
         
     def test_EveryInsertedKeyMustBeInTree(self):
         for key in self.insertedKey:
-            self.assertTrue( self.t.search(key) != None )
+            node = self.t.search(key)
+            self.assertTrue( node != None and node.isValueSet() and node.value == key)
 
-class TestSequenceFunctions(unittest.TestCase):
+######## if the tree hold only one value, the root child can't have any child
 
-    def setUp(self):
-        self.seq = range(10)
+    def test_if1valueOnly1Node(self):
+        self.assertTrue(len(self.insertedKey) == 0 or (len(self.insertedKey) == 1 and self.t.isValueSet() and len(self.t.childs) == 0) or len(self.insertedKey) > 1)
 
-    def test_shuffle(self):
-        # make sure the shuffled sequence does not lose any elements
-        random.shuffle(self.seq)
-        self.seq.sort()
-        self.assertEqual(self.seq, range(10))
 
-        # should raise an exception for an immutable sequence
-        self.assertRaises(TypeError, random.shuffle, (1,2,3))
-
-    def test_choice(self):
-        element = random.choice(self.seq)
-        self.assertTrue(element in self.seq)
-
-    def plop_sample(self):
-        with self.assertRaises(ValueError):
-            random.sample(self.seq, 20)
-        for element in random.sample(self.seq, 5):
-            self.assertTrue(element in self.seq)
 
 if __name__ == '__main__':
     unittest.main()

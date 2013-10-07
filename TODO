@@ -37,9 +37,11 @@ TODO
                 test d'insert d'une chaine existante
                     genre beer
                     
-                test sur chaine vide
+                test des cas limite sur chaine vide
                 
-                test sur root
+                test des cas limite sur root
+        
+            traversal
         
             -random insert/remove/search/...
                 -ensuite la structure de l'arbre doit etre coherent

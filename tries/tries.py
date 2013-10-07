@@ -17,7 +17,7 @@
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from exception import triesException
-from utils import noneFunc, charInCommons
+from utils import noneFunc, charInCommons, returnNode
 
 class tries():
     
@@ -354,42 +354,43 @@ class tries():
         traversalState = initState
         level          = 0
          
-        while current != None:            
+        while current != None: 
             ### traverse the node ###
-            if "traversed" not in self.__dict__.keys():
+            if "traversed" not in current.__dict__.keys():
                 currentPath += current.key
                 if preOrder:
-                    traversalState = executeOnNode(currentPath, self, traversalState, level)                
-                self.traversed = True
+                    traversalState = executeOnNode(currentPath, current, traversalState, level)                
+                current.traversed = True
             
             ### identify next node to explore ###
             #is there some child to explore
-            if len(self.childs) > 0:
+            if len(current.childs) > 0:
                 #does the exploration already start ?
-                if "traversal_index" not in self.__dict__.keys():
+                if "traversal_index" not in current.__dict__.keys():
                     level += 1
-                    self.traversal_index = 0
+                    current.traversal_index = 0
                 
                 #is there still child to explore ,
-                if self.traversal_index < len(self.childs):
-                    current = self.childs[self.traversal_index]
-                    self.traversal_index += 1
+                if current.traversal_index < len(current.childs):
+                    current.traversal_index += 1
+                    current = current.childs[current.traversal_index -1]
                     continue
                 
                 #no more need the index
-                del self.traversal_index
+                del current.traversal_index
                 level -= 1
                 
-            #back to the parent
+            #post order traversal
             if not preOrder:
-                traversalState = executeOnNode(currentPath, self, traversalState, level)
+                traversalState = executeOnNode(currentPath, current, traversalState, level)
             
             #remove the key string of the current node from the path
-            if len(self.key) > 0:
-                currentPath = currentPath[:-len(self.key)]
+            if len(current.key) > 0:
+                currentPath = currentPath[:-len(current.key)]
             
-            del self.traversed
-            current = self.parent
+            #back to the parent
+            del current.traversed
+            current = current.parent
         
         return traversalState
     
@@ -456,13 +457,15 @@ class tries():
         for i in range(0,level):
             s+= " "
         
-        s = s+"{"+self.key+"}"
-        s += repr(self)
+        s += "{"+node.key+"}"
+        s += repr(node)
         
         if level == 0:
             state += s
         else:
             state += "\n" + s
+        
+        return state
     
 
     #
@@ -509,7 +512,6 @@ class tries():
     #
     #
     def __repr__(self):
-        
         if self.value == None:
             if self.parent == None:
                 return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
