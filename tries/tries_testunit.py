@@ -11,12 +11,13 @@ class TriesTestState(unittest.TestCase):
     def setUp(self):
         self.insertedKey = ["bear", "be", "bearor", "beer", ""]
         self.t           = tries()
+        self.keyValue    = {}
         
         for key in self.insertedKey:
-            self.t.insert(key,key)
+            self.keyValue[key] = self.t.insert(key,key)
 
-#########
-    def test_traversal(self):
+######### print just the tree
+    def test_traversal_value(self):
         print ""
         print self.t.traversal()
         print ""
@@ -48,16 +49,25 @@ class TriesTestState(unittest.TestCase):
 ######### every inserted key must be in the tree with 
         
     def test_EveryInsertedKeyMustBeInTree(self):
-        for key in self.insertedKey:
+        for key,value in self.keyValue.iteritems():
             node = self.t.search(key)
-            self.assertTrue( node != None and node.isValueSet() and node.value == key)
+            print key + " vs " + value.key + " vs "+node.key
+            self.assertTrue( node != None and node.isValueSet() and node.value == key)#TODO  and node == value)
 
 ######## if the tree hold only one value, the root child can't have any child
 
     def test_if1valueOnly1Node(self):
         self.assertTrue(len(self.insertedKey) == 0 or (len(self.insertedKey) == 1 and self.t.isValueSet() and len(self.t.childs) == 0) or len(self.insertedKey) > 1)
 
+####### test traversal
+    def _traversal(self, path, node, state, level):
+        state += 1
+        return state
+        
+        pass #TODO try to test each value
 
+    def test_traversal(self):
+        self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, 0) == len(self.insertedKey))
 
 if __name__ == '__main__':
     unittest.main()
