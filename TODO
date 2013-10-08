@@ -18,57 +18,78 @@ TODO
 		-a value string    : it is a complete string, and the node found contains a value
 		-a final string    : it is a complete string, and the node found does not have any child
 
-	TEST
+    A TREE PROPERTIES (all this properties must always be verified to get a valid tree)
+        INSERT
+            -every inserted key are in the tree
+            -each key appears only once, no redundant path
+            -every value node come from the insertion of a key
+            -the value of a node corresponds to the path string of the insertion
+        
+        CHILD (end node = no child)
+            -an intermediate node without value must have more than 1 child (or its existence is useless)
+            -every end node are value node, except an empty root
+        
+        KEY STRING
+            -only the root node can have the empty string as key
+            -every no root node must have a key length of more than 0
+        
+        PARENT
+            -a child node must have its parent in the variable parent
+            -there is always only one root
+            -no cycle is allowed
+
+	TEST (tries)
+	    -a default class inherited from object
+	        with all the tree properties
+	        
+	    -then a new class inherited from default class AND testinstance
+	        -to test the specifig case of the test
+	            -insert class
+	            -remove class
+	            -...
+	
+	
 		-class tries 
 			-test with a non empty root
 			    -an empty root that become a non empty root
-			    -a non empty root that become again an empty root
-			
-		-remove/search/insert
-		    -faire des jeux de tests permettant de tester tous les cas de figure
+			    
+		    
 		    
         -simple test (python unit test)
-            insert
-                bear        (insert in empty tree)
-                    be      (partial match)
-                    bearor  (no match child)
-                    beer    (false result)
-        
-                test d'insert d'une chaine existante
-                    genre beer
-                    
-                test des cas limite sur chaine vide
-                
-                test des cas limite sur root
-        
-            traversal
-        
-            -random insert/remove/search/...
-                -ensuite la structure de l'arbre doit etre coherent
-                    -pas de noeud intermediate avec 1 seul fils
-                    -toutes les chaines inserees doivent pointer sur un value node  
-                        -et inverse, pas de value node sans chaine inseree
-                    -seul le root peut avoir une chaine vide
-                    -insertion de chaine vide
+            -test des cas limite sur root
+                -a non empty root that become again an empty root
+                -test des cas limite sur chaine vide
+                    quand arbre vide
+                    quand arbre remplie avec racine pleine
+                    (autre ?)
+                        
+	        -remove
+	            -test each case on/without the root
+            
+            -test insert avec des value None            
+            
+        -random insert/remove/search/...
+            -ensuite la structure de l'arbre doit etre coherent
+                -pas de noeud intermediate avec 1 seul fils
+                -toutes les chaines inserees doivent pointer sur un value node  
+                    -et inverse, pas de value node sans chaine inseree
+                -seul le root peut avoir une chaine vide
+                -insertion de chaine vide
+
+    TEST (multitries)
+        construire un arbre a plusieurs niveau avec des chaines communes au debut et de moins en moins vers la fin
+        toto tata titi
+        toto tata plop
+        toto plap plip
 
 	IMPROVMENT
 		-improve the documention outside and inside each class, function, piece of code, ...
 			-rename if necessary (don't be afraid)
-		-"remove" function (i have a bad feeling about this function, check it)
-			this function can't create intermediate node without content and with only one child
-				ok
-			But some optimisation are possible
-			    TO FINISH
-		-check the other major function insert/search
-		-eviter les appels recursifs au max
-		-permettre le stockage de valeur None
-		    -faire des methodes isValueNode, setValue, unsetValue
 		-transformer les inner function en fonction de classe avec un prefixe _
 
 	NEW FEATURE
 		-create a setup.py
 		-create a example.py
-		-create a test_unit.py
 
 	BUG (there is probably some bugs, fint them !!! )
 		-
