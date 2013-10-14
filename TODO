@@ -18,13 +18,14 @@ TODO
 		-a value string    : it is a complete string, and the node found contains a value
 		-a final string    : it is a complete string, and the node found does not have any child
 
-    A TREE PROPERTIES (all this properties must always be verified to get a valid tree)
+    ELEMENTARY TREE PROPERTIES (all this properties must always be verified to get a valid tree)
         INSERT
             -every inserted key are in the tree
             -each key appears only once, no redundant path
             -every value node come from the insertion of a key
             -the value of a node corresponds to the path string of the insertion
-        
+            -if the tree hold only one value, the root child can't have any child
+            
         CHILD (end node = no child)
             -an intermediate node without value must have more than 1 child (or its existence is useless)
             -every end node are value node, except an empty root
@@ -39,35 +40,30 @@ TODO
             -no cycle is allowed
 
 	TEST (tries)
-	    -a default class inherited from object
-	        with all the tree properties
-	        
-	    -then a new class inherited from default class AND testinstance
-	        -to test the specifig case of the test
-	            -insert class
-	            -remove class
-	            -...
-	
-	
-		-class tries 
-			-test with a non empty root
-			    -an empty root that become a non empty root
-			    
-		    
-		    
-        -simple test (python unit test)
-            -test des cas limite sur root
+        -UNIT TEST
+            -make a default class with all the elementary test (see above)
+                -a default class inherited from object
+                    -then a new class inherited from default class AND testinstance
+	                    -to test the specifig case of the test
+	                        -insert class
+	                        -remove class
+	                        -...
+	            -make a subclass for 
+	                -insert test
+	                -remove test
+	                    -test each case on/without the root
+	                -traversal test
+                    -other ?
+        
+            -limite case on the root node (insert the test in the convenient testcase, or create new)
                 -a non empty root that become again an empty root
                 -test des cas limite sur chaine vide
                     quand arbre vide
                     quand arbre remplie avec racine pleine
                     (autre ?)
-                        
-	        -remove
-	            -test each case on/without the root
-            
-            -test insert avec des value None            
-            
+
+            -test insert avec des value None 
+
         -random insert/remove/search/...
             -ensuite la structure de l'arbre doit etre coherent
                 -pas de noeud intermediate avec 1 seul fils
