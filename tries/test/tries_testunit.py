@@ -19,13 +19,31 @@ class ElementaryTest(object):
             #This condition can be true, because key and value are moved in the insert process of the other nodes  and node == value)
             
     #1.2 each key appears only once, no redundant path
-        #TODO
+    def test_noRedundantPath(self):
+        self._inner_test_noRedundantPath(self.t)
+    
+    def _inner_test_noRedundantPath(self):
+        #two childs can't begin with the same letter
+        for i in range(0,len(self.childs)):
+            for j in range(i,len(self.childs)):
+                self.assertTrue(self.childs[i].key[0] != self.childs[j].key[0])
+        
+        for c in node.childs:
+            self._inner_test_aValueNodeHadBeenInserted(c)
         
     #1.3 every value node come from the insertion of a key
         #TODO
+            #difference avec le 1.4 ?
     
     #1.4 the value of a node corresponds to the path string of the insertion
-        #TODO
+    def test_aValueNodeHadBeenInserted(self):
+        self._inner_test_aValueNodeHadBeenInserted(self.t)
+        
+    def _inner_test_aValueNodeHadBeenInserted(self,node):
+        self.assertTrue(not self.isValueSet() or (self.isValueSet() and node.getCompleteName() in self.keyValue) )
+        
+        for c in node.childs:
+            self._inner_test_aValueNodeHadBeenInserted(c)
         
     #1.5 if the tree hold only one value, the root child can't have any child
     def test_if1valueOnly1Node(self):
@@ -44,7 +62,15 @@ class ElementaryTest(object):
             self._inner_No1childInNonValueIntermediateNode(c)
             
     #2.2 every end node are value node, except an empty root
-        #TODO
+    def test_everyEndNodeAreValueNode(self):
+        for c in self.t.childs:
+            self._inner_test_everyEndNodeAreValueNode(c)
+        
+    def _inner_test_everyEndNodeAreValueNode(self):
+        self.assertTrue(len(node.childs) > 0 or (len(node.childs) == 0 and node.isValueSet()) )
+        
+        for c in node.childs:
+            self._inner_test_everyEndNodeAreValueNode(c)
 
 #3 KEY STRING
     #3.1 only the root node can have the empty string as key
@@ -59,17 +85,51 @@ class ElementaryTest(object):
             self._inner_No1childInNonValueIntermediateNode(c)
     
     #3.2 every no root node must have a key length of more than 0
-        #TODO
+    def test_keyStringBiggerThanOne(self):
+        for c in self.t.childs:
+            self._inner_test_keyStringBiggerThanOne(c)
+        
+    def _inner_test_keyStringBiggerThanOne(self,node):
+        self.assertTrue(len(node.key) > 0)
+        
+        for c in node.childs:
+            self._inner_test_keyStringBiggerThanOne(c, node)
 
 #4. PARENT
-    #4.1 a child node must have its parent in the variable parent
-        #TODO
+    #4.1 a child node must have its parent in the variable parent    
+    def test_node_linked_to_its_parent(self):
+        self._inner_test_node_linked_to_its_parent(self.t)
+        
+    def _inner_test_node_linked_to_its_parent(self, node, parent):
+        self.assertTrue( node.parent == parent)
+        
+        for c in node.childs:
+            self._inner_test_node_linked_to_its_parent(c, node)
         
     #4.2 there is always only one root
-        #TODO
+    def test_onlyOneRoot(self):
+        self.assertTrue( self.t.parent == None)
+        
+        for c in self.t.childs:
+            self._inner_test_onlyOneRoot(c)
+        
+    def _inner_test_onlyOneRoot(self, node):
+        self.assertTrue( node.parent != None)
+        self.assertIsInstance(node.parent, tries)
+        
+        for c in node.childs:
+            self._inner_test_onlyOneRoot(c)
         
     #4.3 no cycle is allowed
-        #TODO
+    def test_noCycle(self):
+        self._inner_test_noCycle(self.t)
+        
+    def _inner_test_noCycle(self,node):
+        self.assertTrue("nocycle" not in node.__dict__.keys())
+        node.nocycle = True
+        
+        for c in node.childs:
+            self._inner_test_noCycle(c)
 
 class TriesTestState(unittest.TestCase, ElementaryTest):
     
