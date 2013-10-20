@@ -49,7 +49,7 @@ class tries():
     
     def unsetValue(self):
         self.value = None
-        self.valueSet = True
+        self.valueSet = False
     
     
     def isValueSet(self):
@@ -78,7 +78,7 @@ class tries():
     def isEmptyTries(self):
         return len(self.childs) == 0 and self.value == None
     
-
+    
 ########### MAJOR FUNCTION (remove/update/insert) #######################################################################################################################################################
     
     #
@@ -173,7 +173,7 @@ class tries():
             
         raise triesException("key not found")
     
-
+    
     #
     # insert a new couple key/value in the tree
     #
@@ -342,6 +342,11 @@ class tries():
         #if the current node has a None value, it's an intermediate node with at most two children
         raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
     
+
+    def advancedSearch(self, prefix):
+        result = triesSearchResult()
+        return self.searchNode(prefix, result._perfect, result._partial, result._noChild, result._false)
+    
     
 ############ TRAVERSAL FUNCTION #####################################################################################################################################################################
     
@@ -394,14 +399,14 @@ class tries():
         
         return traversalState
     
-
+    
     #
     # is there any interest in this ??
     #
     def genericBreadthFirstTraversal(self, executeOnNode):
         pass #TODO
     
-
+    
 ############ MISC FUNCTION #########################################################################################################################################################################
     
     #
@@ -420,28 +425,28 @@ class tries():
     def listEveryCompletePath(self):
         return self.genericDepthFirstTraversal(self._listEveryCompletePath, [])
     
-
+    
     #
     # @return a dictionnary with all the key/value or None if there is no result
     #
     def getKeyListFromPrefix(self,prefix):
         starting_point = self.searchNode(prefix,returnNode,returnNode)
         
-        #TODO bof bof la gestion du node not found
+        #if invalid result (noMatchChild or falseResult), there is no bigger path
         if starting_point == None:
             return []
         
         return starting_point.genericDepthFirstTraversal(self._listEveryCompletePath, [])
     
-
+    
 #################
-
+    
     def _getMaxChildCount(self, path, node, state, level):
         if len(node.child) > state:
             return len(node.child)
         return state
     
-
+    
     #
     # this methode compute the bigger number of child of all the current node childs
     # @return an integer bigger or equal to zero
@@ -449,7 +454,7 @@ class tries():
     def getMaxChildCount(self):
         return self.genericDepthFirstTraversal(self._getMaxChildCount, 0)
     
-
+    
 #################
     
     def _traversal(self, path, node, state, level):
@@ -467,7 +472,7 @@ class tries():
         
         return state
     
-
+    
     #
     #
     #
@@ -482,16 +487,16 @@ class tries():
             state += 1
         return state
     
-
+    
     #
     #
     #
     def countValue(self):
         return self.genericDepthFirstTraversal(self._countValue, 0)
     
-
+    
 #################
-
+    
     #
     #
     #
@@ -507,23 +512,72 @@ class tries():
     
     
 ############ __ FUNCTION __ #########################################################################################################################################################################
-
+    
     #
     #
     #
     def __repr__(self):
         if self.value == None:
             if self.parent == None:
-                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
+                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+", valueSet = "+str(self.valueSet)+")"
             else:
-                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
+                return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+", valueSet = "+str(self.valueSet)+")"
         else:
             if self.parent == None:
-                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+")"
+                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+", valueSet = "+str(self.valueSet)+")"
             else:
-                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+")"
+                return "tries node (key = \""+self.key+"\", value = \""+str(self.value)+"\", completeName = "+self.getCompleteName()+", parent = \""+self.parent.key+"\", child count = "+str(len(self.childs))+", valueSet = "+str(self.valueSet)+")"
     
 
-    #TODO faire les equals, hash, etc..
+class triesSearchResult(object):
+    def __init__(self):
+        self.resultNode   = None #perfect or partial match
+        self.previousNode = None #noMatchNode, falseNode, partial
+    
+        self.perfectMatch = False
+        self.partialMatch = False
+        self.noMatchChild = False
+        self.falseResult  = False
+    
+    def _perfect(node, prefix):
+        self.perfectMatch = True
+        self.resultNode   = node
+        self.previousNode = node.parent
         
+    def _partial(node, prefix, count, totalCount):
+        self.partialMatch = True
+        self.resultNode   = node
+        self.previousNode = node.parent
         
+    def _noChild(node,prefix,count,totalCount):
+        self.noMatchChild = True
+        self.previousNode = node
+    
+    def _false(node,prefix,count,totalCount):
+        self.falseResult = True
+        self.previousNode = node
+    
+    ########
+    
+    def isPerfectMatch(self):
+        return self.perfectMatch
+    
+    def isPartialMatch(self):
+        return self.partialMatch
+    
+    def isMatch(self):
+        return self.perfectMatch or self.partialMatch
+    
+    def isNoMatchNode(self):
+        return self.noMatchNode
+        
+    def isFalseResult(self):
+        return self.falseResult
+    
+    def getNode(self):
+        return self.resultNode
+        
+    def getPreviousNode(self):
+        return self.previousNode
+    
+

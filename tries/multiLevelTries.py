@@ -16,13 +16,21 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#TODO
+    #-change variable name
+        #-commandStrings
+        #-command
+        #-...
+        
+    #comment everything
+
 from tries import *
 from exception import triesException
 
 class multiLevelTries():
     
     def __init__(self):
-        self.levelOneTries = tries("")
+        self.levelOneTries = tries()
     
     #
     #
@@ -30,10 +38,11 @@ class multiLevelTries():
     # @param command : object to store
     #    
     def addEntry(self,commandStrings, command):
-        
         #check commandStrings
         if commandStrings == None or type(commandStrings) != list or len(commandStrings) < 0:
             raise triesException("need string token to find a value, no token found")
+        
+        #TODO can store a tries ?
         
         #search a similar commandString
         tries_tmp = self.levelOneTries
@@ -109,8 +118,8 @@ class multiLevelTries():
     # 
     # TODO difference avec searchEntryFromMultiplePrefix?
     #
-    def searchEntry(self, commandStrings):
-        return self.searchEntry(commandStrings)
+    #def searchEntry(self, commandStrings):
+    #    return self.searchEntry(commandStrings)
     
     #
     #
@@ -142,7 +151,9 @@ class multiLevelTries():
     def __repr__(self):
         return repr(self.levelOneTries)
         
-  
+#
+#  ???
+#  
 def buildDictionnary(current,stringStack = []):
     ret = {}
     #print current.key
