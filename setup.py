@@ -28,3 +28,7 @@ setup(name='Pytries',
       packages=['tries'],
      )
      #license, platforms, 
+#License: UNKNOWN
+#Description: UNKNOWN
+#Platform: UNKNOWN
+

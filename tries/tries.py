@@ -29,18 +29,18 @@ class tries():
     # @parameter parent, the parent node in the tree
     # @parameter value, the value stored in the key
     #
-    def __init__(self, key = "", parent = None):
+    def __init__(self, key = "", parent = None, anySuffix = False):
         "init the node with a key, and maybe a parent and a value"
         #print "{"+key+"}"
         #if key == None or type(key) != str or len(key) == 0:
         # raise triesException("the inserted key must be a string with a length bigger than zero")
         
-        self.key = key
-        self.childs = []
-        self.value = None
-        self.valueSet = False
-        self.parent = parent
-    
+        self.key       = key
+        self.childs    = []
+        self.value     = None
+        self.valueSet  = False
+        self.parent    = parent
+        self.anySuffix = anySuffix
     
     def setValue(self, value):
         self.value = value
@@ -266,14 +266,15 @@ class tries():
     # generic search method, this method allow to retrieve any kind of result from the tree with the parameter methods
     # 
     # @parameter prefix
-    # @parameter exactResult
-    # @parameter partialResult
-    # @parameter noMatchChild
-    # @parameter falseResult
+    # @parameter exactResult(currentNode,prefix), the node corresponding to the perfect match and the complete path to find in the tree
+    # @parameter partialResult(currentNode,prefix,count,totalCount), the node corresponding to the partial match, the prefix path to find, the count of common caracter with the current node, and the total count of common caracters
+    # @parameter noMatchChild(currentNode,prefix,totalCount), the last explored node, the prefix to find in the tree, and the total count of common caracters
+    # @parameter falseResult(currentNode,prefix,count,totalCount), same as partialResult
+    # @parameter anySuffixAllowed, allow to disable the special stuff any suffix to make a strict search on the tree
     # @return
     # @exception triesException if the prefix is not a string type
     #
-    def searchNode(self,prefix,exactResult,partialResult = noneFunc, noMatchChild = noneFunc, falseResult = noneFunc):
+    def searchNode(self,prefix,exactResult,partialResult = noneFunc, noMatchChild = noneFunc, falseResult = noneFunc, anySuffixAllowed = False):
         #must be a valid string
         if prefix == None or type(prefix) != str:# or len(prefix) == 0:
             raise triesException("the searched key must be a string")# with a length bigger than zero")
@@ -303,6 +304,9 @@ class tries():
                         currentNode = child
                         break
                 else:
+                    if anySuffixAllowed and self.anySuffix:
+                        return exactResult(currentNode,prefix)
+                
                     #no child found to continue the search
                     return noMatchChild(currentNode,prefix,totalCount) # bearor > bear
                     
@@ -353,6 +357,8 @@ class tries():
     #
     # start a traversal over all the node of the tree starting from the current node included
     #
+    # WARNING, this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
+    #
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True):
         current        = self
         currentPath    = ""
@@ -401,10 +407,26 @@ class tries():
     
     
     #
-    # is there any interest in this ??
+    # TODO test it
+    # http://en.wikipedia.org/wiki/Breadth-first_search
     #
-    def genericBreadthFirstTraversal(self, executeOnNode):
-        pass #TODO
+    def genericBreadthFirstTraversal(self, executeOnNode, initState = None):
+        level          = 0
+        Queue          = [(self,level,self.key)]
+        traversalState = initState
+        currentPath    = ""
+        
+        while len(Queue) > 0:
+            #dequeu current node
+            current, level, currentPath = Queue.popleft()
+            
+            #enqueue node child
+            while c in current.childs:
+                Queue.append( (c,level+1, path+c.key) )
+            
+            #execute user function
+            traversalState = executeOnNode(currentPath, current, traversalState, level)
+    
     
     
 ############ MISC FUNCTION #########################################################################################################################################################################

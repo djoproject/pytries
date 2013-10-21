@@ -23,6 +23,7 @@
         #-...
         
     #comment everything
+    #allow to insert command with other caractere than space between them
 
 from tries import *
 from exception import triesException
@@ -30,46 +31,70 @@ from exception import triesException
 class multiLevelTries():
     
     def __init__(self):
+        "this method init the multiLevelTries with an empty tries root"
         self.levelOneTries = tries()
+        self.spaceCaracter = " "
     
     #
-    #
-    # @param commandStrings : array string of command
-    # @param command : object to store
+    # @param stringList : array string
+    # @param value : object to store
     #    
-    def addEntry(self,commandStrings, command):
-        #check commandStrings
-        if commandStrings == None or type(commandStrings) != list or len(commandStrings) < 0:
-            raise triesException("need string token to find a value, no token found")
+    def addEntry(self,stringList, value):
+        "this method allows to insert a new string list associated with a value"
+        #check stringList
+        if stringList == None or type(stringList) != list or len(stringList) < 0:
+            raise triesException("need string token to insert a new value, no token found")
         
-        #TODO can store a tries ?
+        #TODO can store a tries here ?
+            #yeah why not, it will create a new functionnal branch in the multiTries
+                #except if some information are added later with the node
         
-        #search a similar commandString
+        #search a similar String list
         tries_tmp = self.levelOneTries
-        for i in range(0,len(commandStrings)):
-            tmp = tries_tmp.search(commandStrings[i])
-            if tmp != None and tmp.value != None:
-                if isinstance(tmp.value,tries) :
-                    tries_tmp = tmp.value
-                    continue
-                #elif isinstance(tmp,commandShell) : #on ne sait pas encore ce qu'on va stocker dans le multitries
-                #    raise triesException("a similar command chain already exists")
-                else:
+        for i in range(0,len(stringList)): #for each token of the string list to insert
+            tmp = tries_tmp.search(stringList[i])
+            
+            #is there a value node here ?
+            if tmp != None and tmp.isValueSet(): 
+                #the value of the node is another tries ?
+                if isinstance(tmp.value,tries):  
+                    tries_tmp = tmp.value 
+                    continue #continue exploring
+                    
+                else: #there is a value in this node and this is not a tries, can't create a new branch here
+                          #this case include the case where the complete inserted path exists
+                    
+                    #TODO why can't we store a value and a branch togeter ?
+                        #yeah, like in the tries tree with the child and the value
+                            #so we insert a value (maybe none) and a tries (maybe none)
+                                #or a trie with an empty string key "" and a value :)
+                                    #it looks good
+                
+                    #build the existing path
                     existingPath = ""
                     for k in range(0,i):
-                        existingPath += commandStrings[k]+" "
+                        existingPath += stringList[k]+self.spaceCaracter
                         
-                    raise triesException("can't insert a command here, another command already exists <"+existingPath+">"+" vs <"+str(commandStrings)+">")
+                    #build the path to insert
+                    pathToInsert = ""
+                    for k in range(0,len(stringList)):
+                        pathToInsert += stringList[k]+self.spaceCaracter
+                    
+                    #raise the exception signaling the existing path
+                    raise triesException("can't insert a value here, another value already exists <"+existingPath+">"+" vs <"+pathToInsert+">")
             break
         
-        #insert the new command string
-        for j in range(i,len(commandStrings)-1):
-            tries_tmp = tries_tmp.insert(commandStrings[j],tries("")).value
+        #insert the new value
+        for j in range(i,len(stringList)-1):
+            tries_tmp = tries_tmp.insert(stringList[j],tries("")).value
         else:
-            j = len(commandStrings)-2
+            j = len(stringList)-2
             
-        tries_tmp.insert(commandStrings[j+1],command)
+        tries_tmp.insert(stringList[j+1],value)
     
+    #
+    #
+    #
     def removeEntry(self,commandStrings):
         
         #check commandStrings
