@@ -35,9 +35,61 @@ class multiLevelTries():
         self.levelOneTries = tries()
         self.spaceCaracter = " "
     
-    def searchNode(self):
-        pass #TODO faire une recherche similaire a celle du tries qui pourra etre reutilisee dans toutes les fonctions du multiTries
     
+"""        search function
+            information returned
+                -the number of common token
+                -the last matching node, if the number of common is 0, return None
+
+                need more information ? see at dev process
+
+            about perfect/partial
+                insert must find only perfect match
+                    because partial match is a not similar result
+                        but it would be strange, no ?
+                remove/update/search can find partial or perfect match
+
+                faire un arg, onlyPerfectMatch"""
+    #
+    #
+    # @return the number of matching token, 
+    #
+    def searchNode(self, stringList, onlyPerfectMatch=True):
+        if stringList == None or type(stringList) != list or len(stringList) < 0:
+            raise triesException("need string token to insert a new value, no token found")
+
+        #because the value inserted is always stored in the root of a tries, we need to add an empty string
+        stringList.append("")
+        
+        #SEARCH a similar String list
+        tries_tmp      = self.levelOneTries
+        triesLinked    = []
+        foundValue     = False
+        value          = None
+        for i in range(0,len(stringList)): #for each token of the string list to insert
+            #search the string[i] in the current tries
+            if onlyPerfectMatch:
+                tmp = tries_tmp.search(stringList[i])
+            else:
+                tmp = tries_tmp.searchUniqueFromPrefix(stringList[i])
+            
+            #store the result
+            triesLinked.append( (stringList[i], tries_tmp, tmp,) )
+            
+            #is there a value node here ?
+            if tmp != None and tmp.isValueSet():
+                #the value of the node is another tries ?
+                if isinstance(tmp.value,tries):
+                    tries_tmp      = tmp.value #set the next tries to explore
+                    continue #continue exploring
+                elif i == len(stringList)-1 and tmp.key == "":#each string had been consumed and there is a root with an empty key
+                        foundValue  = True
+                        value       = tmp.value        #get the value stored
+                        triesLinked = triesLinked[:-1] #remove the last special token ""
+            
+            #at this point, we found a result or the path does not exist in the tree
+            return triesLinked, foundValue, value
+        
     #
     # @param stringList : array string
     # @param value : object to store
@@ -45,8 +97,7 @@ class multiLevelTries():
     def addEntry(self,stringList, value):
         "this method allows to insert a new string list associated with a value"
         #check stringList
-        if stringList == None or type(stringList) != list or len(stringList) < 0:
-            raise triesException("need string token to insert a new value, no token found")
+        
         
         #the value node is always stored in the root of a tries
         stringList.append("")
@@ -141,8 +192,9 @@ class multiLevelTries():
                 break
     
     def updateEntry(self, commandStrings, newValue):
-        node, args = self.searchEntry(commandStrings)
-        node.value = newValue
+        pass #TODO
+        #node, args = self.searchEntry(commandStrings)
+        #node.value = newValue
     
     #
     # 
