@@ -35,6 +35,9 @@ class multiLevelTries():
         self.levelOneTries = tries()
         self.spaceCaracter = " "
     
+    def searchNode(self):
+        pass #TODO faire une recherche similaire a celle du tries qui pourra etre reutilisee dans toutes les fonctions du multiTries
+    
     #
     # @param stringList : array string
     # @param value : object to store
@@ -45,11 +48,15 @@ class multiLevelTries():
         if stringList == None or type(stringList) != list or len(stringList) < 0:
             raise triesException("need string token to insert a new value, no token found")
         
+        #the value node is always stored in the root of a tries
+        stringList.append("")
+        
         #TODO can store a tries here ?
             #yeah why not, it will create a new functionnal branch in the multiTries
                 #except if some information are added later with the node
+                    #a value must always be stored at a root node with empty key
         
-        #search a similar String list
+        #SEARCH a similar String list
         tries_tmp = self.levelOneTries
         for i in range(0,len(stringList)): #for each token of the string list to insert
             tmp = tries_tmp.search(stringList[i])
@@ -63,34 +70,32 @@ class multiLevelTries():
                     
                 else: #there is a value in this node and this is not a tries, can't create a new branch here
                           #this case include the case where the complete inserted path exists
+                          #normaly at this point, the inserted path must be the same as the value here
                     
-                    #TODO why can't we store a value and a branch togeter ?
-                        #yeah, like in the tries tree with the child and the value
-                            #so we insert a value (maybe none) and a tries (maybe none)
-                                #or a trie with an empty string key "" and a value :)
-                                    #it looks good
-                
-                    #build the existing path
-                    existingPath = ""
-                    for k in range(0,i):
-                        existingPath += stringList[k]+self.spaceCaracter
-                        
+                    #detect inconsistance in the tree
+                    if tmp.key != "":
+                        pass #TODO
+                    
                     #build the path to insert
                     pathToInsert = ""
                     for k in range(0,len(stringList)):
                         pathToInsert += stringList[k]+self.spaceCaracter
                     
                     #raise the exception signaling the existing path
-                    raise triesException("can't insert a value here, another value already exists <"+existingPath+">"+" vs <"+pathToInsert+">")
+                    raise triesException("The path <"+pathToInsert+"> already exists in the multi tries")
             break
         
-        #insert the new value
+        stringList = stringList[:-1]
+        #INSERT the new value, stringList[i:] does not exist yet in the tree
         for j in range(i,len(stringList)-1):
-            tries_tmp = tries_tmp.insert(stringList[j],tries("")).value
+            #build the tries structure
+            tries_tmp = tries_tmp.insert(stringList[j],tries()).value
         else:
+            # ???
             j = len(stringList)-2
-            
-        tries_tmp.insert(stringList[j+1],value)
+        
+        #the value is inserted in the root node of an empty tree
+        tries_tmp.insert(stringList[j+1],tries()).setValue(value)
     
     #
     #
