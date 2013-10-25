@@ -24,6 +24,7 @@
         
     #comment everything
     #allow to insert command with other caractere than space between them
+    #manage anysuffix
 
 from tries import *
 from exception import triesException
@@ -51,7 +52,8 @@ class multiLevelTries():
 
                 faire un arg, onlyPerfectMatch"""
     #
-    #
+    # @parameter stringList is the list of string token to find in the multiTries
+    # @parameter onlyPerfectMatch is a boolean to limit the search to the perfect match result, if it is set to false, the partial result will be allowed
     # @return the number of matching token, 
     #
     def searchNode(self, stringList, onlyPerfectMatch=True):
@@ -62,18 +64,18 @@ class multiLevelTries():
         stringList.append("")
         
         #SEARCH a similar String list
-        tries_tmp      = self.levelOneTries
-        triesLinked    = []
-        foundValue     = False
-        value          = None
+        tries_tmp      = self.levelOneTries #current tries where make the search (at init, it is the first level)
+        triesLinked    = [] #list to store the result
+        foundValue     = False #did we find the result ?
+        value          = None #result match ?
         for i in range(0,len(stringList)): #for each token of the string list to insert
             #search the string[i] in the current tries
             if onlyPerfectMatch:
                 tmp = tries_tmp.search(stringList[i])
             else:
-                tmp = tries_tmp.searchUniqueFromPrefix(stringList[i])
+                tmp = tries_tmp.searchUniqueFromPrefix(stringList[i]) #allow partial but non ambigous result
             
-            #store the result
+            #store the result (token, in which tries the token had been found, the value associated to the token)
             triesLinked.append( (stringList[i], tries_tmp, tmp,) )
             
             #is there a value node here ?
@@ -90,6 +92,8 @@ class multiLevelTries():
             #at this point, we found a result or the path does not exist in the tree
             return triesLinked, foundValue, value
         
+    #
+    # TODO rewrite with searchNode
     #
     # @param stringList : array string
     # @param value : object to store
@@ -149,7 +153,7 @@ class multiLevelTries():
         tries_tmp.insert(stringList[j+1],tries()).setValue(value)
     
     #
-    #
+    # TODO rewrite with searchNode
     #
     def removeEntry(self,commandStrings):
         
@@ -191,20 +195,16 @@ class multiLevelTries():
                 tries_table[indice].remove(commandStrings[indice])
                 break
     
+    #
+    # TODO rewrite with searchNode
+    #
     def updateEntry(self, commandStrings, newValue):
         pass #TODO
         #node, args = self.searchEntry(commandStrings)
         #node.value = newValue
-    
+        
     #
-    # 
-    # TODO difference avec searchEntryFromMultiplePrefix?
-    #
-    #def searchEntry(self, commandStrings):
-    #    return self.searchEntry(commandStrings)
-    
-    #
-    #
+    # TODO rewrite with searchNode
     #
     def searchEntryFromMultiplePrefix(self,commandStrings,returnTriesValue = False):
         #check commandStrings
