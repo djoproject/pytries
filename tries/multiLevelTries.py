@@ -19,21 +19,10 @@
 #TODO        
     #comment everything
         #IN PROGRESS
-    
-    #manage anysuffix
-        #must only be managed on the insertion
-            #howto pass a boolean for each string in the list ?
-                #TODO
-            
-    #manage empty string in list ?
-        #can't insert empty string
-            #why ? because the value are store at the root
-            #so block the insertion of empty key ? or create special bucket to store the element ?
-                #SOLUTION : ####### tuple Value(any), Tries(tries), ValueSet(boolean) #####
             
     #traversal
-        #how to make depth first traversal ?
-            #TODO
+        #TODO
+            #manage the stop traversal
             
         #how to make breadth first traversal ?
             #TODO
@@ -55,9 +44,10 @@ class multiLevelNode(object):
     def unsetValue(self):
         self.valueSet = False
         self.value    = None
-
+    
     def isValueSet(self):
         return self.valueSet
+
 
 class multiLevelTries(object):
     
@@ -222,7 +212,7 @@ class multiLevelTries(object):
         level          = 0
          
         while current != None:
-            print "current",current
+            #print "current", level, len(currentPath),current
             ### traverse the node ###
             if "traversed" not in current.__dict__.keys():
                 currentPath[level] += current.key
@@ -248,13 +238,13 @@ class multiLevelTries(object):
                 del current.traversal_index
                 #level -= 1
             
-            #TODO need to mark the node as visited
+            #TODO after or before the child visit ?
             if current.isValueSet() and current.value.nextTries != None:
                 if "MTParent" in current.value.nextTries.__dict__.keys():
-                    print "del goto down"
+                    #print "del goto down"
                     del current.value.nextTries.MTParent
                 else:
-                    print "goto down ", len(currentPath)
+                    #print "goto down ", len(currentPath)
                     level += 1
                     currentPath.append("")
                     current.value.nextTries.MTParent = current
@@ -267,14 +257,14 @@ class multiLevelTries(object):
             
             #remove the key string of the current node from the path
             if len(current.key) > 0:
-                currentPath = currentPath[level][:-len(current.key)]
+                currentPath[level] = currentPath[level][:-len(current.key)]
             
             #back to the parent
             del current.traversed
             
             #go up in the multilevel tries
             if current.parent == None and "MTParent" in current.__dict__.keys():
-                print "goto up", len(currentPath)
+                #print "goto up", len(currentPath)
                 level -= 1
                 oldCurrent = current
                 currentPath = currentPath[:-1]
@@ -283,22 +273,40 @@ class multiLevelTries(object):
                 continue
                     
             current = current.parent
-            
-            
-        
         return traversalState
     
-    
+
     #
     #
     #    
-    def genericBreadthFirstTraversal(self):
-        pass #TODO
+    def genericBreadthFirstTraversal(self): 
+        #init a queue
+        level          = 0 #TODO don't forget to update
+        Queue          = [(self,level,self.key)]
+        traversalState = initState
+        currentPath    = [""] #TODO don't forget to update
+        
+        #TODO get every value node from this level and add it in the queue
+            #voir misc functon dans tries
+            
+        #read the queue
+        while len(Queue) > 0:
+            #dequeu current node
+            current, level, currentPath = Queue.popleft()
+            
+            #TODO add next level node in the queue
+                #TODO update level (+1) and currentPath (concat)
+            #Queue.append( (c,level+1, path+c.key) )
+            
+            #read value node with value
+            if current.isValueSet() and current.value.isValueSet():
+                traversalState = executeOnNode(currentPath, current, traversalState, level)
 
 #
 # cree un dictionnaitre de toutes les combinaisons cle/valeur existants
 # cette fonction n'a pas vraiment sa place ici :/
 # et elle doit être réecrite en + 
+# TODO possible to do it with traversal function
 #  
 def buildDictionnary(current,stringStack = []):
     ret = {}
