@@ -42,6 +42,7 @@ class tries():
         self.parent    = parent
         self.anySuffix = anySuffix
     
+    
     def setValue(self, value):
         self.value = value
         self.valueSet = True
@@ -75,7 +76,7 @@ class tries():
     #
     #
     #
-    def isEmptyTries(self):
+    def isEmpty(self):
         return len(self.childs) == 0 and self.value == None
     
     
@@ -180,7 +181,7 @@ class tries():
     # @return the inserted node
     # @exception triesException if insertion failed
     #
-    def insert(self,key, value):
+    def insert(self,key, value, anySuffix = False):
         #CASE 1 : perfect match
         def exact(Node,key):
             #if the current node is a value node, can't insert the new value
@@ -255,6 +256,7 @@ class tries():
         #assign the value
         Node = self.searchNode(key,exact,partial,noMatchChild,false)
         Node.setValue(value)
+        Node.anySuffix = anySuffix
         
         #return the node
         return Node
@@ -324,13 +326,16 @@ class tries():
     # This search looks for a perfect key match and return a value node or an non value node
     #
     # @parameter key, the string path to find
-    # @return any kind of node
+    # @return a perfect match value Node or None
     # @exception triesException if the prefix is not a string type
     #
     def search(self,key):
-        return self.searchNode(key,returnNode)
+        Node = self.searchNode(key,returnNode)
+        if Node != None and Node.isValueSet():
+            return Node
+        return None
     
-    
+
     #
     # this function looks for a complete path corresponding to the prefix string given
     #
@@ -339,14 +344,21 @@ class tries():
     # @exception triesException if the prefix is not a string or if the string does not correspond to a complete path
     #
     def searchUniqueFromPrefix(self,prefix):
-        node = self.searchNode(prefix,returnNode,returnNode)
-        if Node.value != None:
-            return Node
-            
-        #if the current node has a None value, it's an intermediate node with at most two children
-        raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
+        Node = self.searchNode(prefix,returnNode,returnNode)
+        if Node != None:
+            if Node.isValueSet():
+                return Node
+            else:
+                #ambiguous result, raise
+                raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
+        
+        #no match in the tree
+        return None
     
-
+    
+    #
+    #
+    #
     def advancedSearch(self, prefix):
         result = triesSearchResult()
         return self.searchNode(prefix, result._perfect, result._partial, result._noChild, result._false)
@@ -511,11 +523,12 @@ class tries():
     
     
     #
-    #
+    # 
     #
     def countValue(self):
         return self.genericDepthFirstTraversal(self._countValue, 0)
     
+
     
 #################
     

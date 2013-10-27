@@ -19,7 +19,7 @@
 def noneFunc(*args):
     return None
 
-def returnNode(Node,prefix):
+def returnNode(Node,prefix, *args):
     return Node
 
 def charInCommons(char1, char2):
