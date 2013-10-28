@@ -169,10 +169,6 @@ class multiLevelTries(object):
             raise triesException("Update, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #set the new value (the last node of the path contains a tries with an empty key tries, this node have to be updated)
-        #existingPath[-1][1].value.setValue(newValue)
-        #print existingPath[-1]
-        #print existing
-        #print existingValue
         existingPath[-1][2].value.setValue(newValue)
     
 
@@ -281,32 +277,37 @@ class multiLevelTries(object):
     #    
     def genericBreadthFirstTraversal(self): 
         #init a queue
-        level          = 0 #TODO don't forget to update
-        Queue          = [(self,level,self.key)]
+        Queue          = [(self.levelOneTries,level,self.key)]
         traversalState = initState
-        currentPath    = [""] #TODO don't forget to update
         
-        #TODO get every value node from this level and add it in the queue
-            #voir misc functon dans tries
-            
+        #init the Queue with every key value of the first level tries
+        keyValue = self.levelOneTries.getKeyValue()
+        for k,v in keyValue.iteritems():
+            Queue.append(v, 0, [k])
+        
         #read the queue
         while len(Queue) > 0:
             #dequeu current node
             current, level, currentPath = Queue.popleft()
             
-            #TODO add next level node in the queue
-                #TODO update level (+1) and currentPath (concat)
-            #Queue.append( (c,level+1, path+c.key) )
+            if not current.isValueSet():
+                continue
             
+            #add every child in the Queue
+            if current.value.nextTries != None:
+                keyValue = current.getKeyValue()
+                newPath = [k]
+                newPath.extend(currentPath)
+                for k,v in keyValue.iteritems():
+                    Queue.append(v, level+1, newPath)
+
             #read value node with value
-            if current.isValueSet() and current.value.isValueSet():
+            if current.value.isValueSet():
                 traversalState = executeOnNode(currentPath, current, traversalState, level)
 
 #
 # cree un dictionnaitre de toutes les combinaisons cle/valeur existants
-# cette fonction n'a pas vraiment sa place ici :/
-# et elle doit être réecrite en + 
-# TODO possible to do it with traversal function
+# TODO convert it with traversal function
 #  
 def buildDictionnary(current,stringStack = []):
     ret = {}
@@ -332,7 +333,11 @@ def buildDictionnary(current,stringStack = []):
             
     return ret
     
-        
+#TODO build advanced search function 
+    #like the advanced search of tries
+    #goal : solve the call command with args, the args are not in the tree
+    
+    
 
 
 

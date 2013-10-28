@@ -456,12 +456,12 @@ class tries():
     #
     #
     #
-    def listEveryCompletePath(self):
+    def getKeyList(self):
         return self.genericDepthFirstTraversal(self._listEveryCompletePath, [])
     
     
     #
-    # @return a dictionnary with all the key/value or None if there is no result
+    # @return a dictionnary with all the key or an empty list if no result
     #
     def getKeyListFromPrefix(self,prefix):
         starting_point = self.searchNode(prefix,returnNode,returnNode)
@@ -471,6 +471,34 @@ class tries():
             return []
         
         return starting_point.genericDepthFirstTraversal(self._listEveryCompletePath, [])
+    
+    #
+    #
+    #
+    def _listEveryCompletePathAndValue(self, path, node, state, level):
+        if node.isValueSet():
+            state[path] = node.value
+        
+        return state
+    
+    #
+    #
+    #
+    def getKeyValue(self):
+        return self.genericDepthFirstTraversal(self._listEveryCompletePathAndValue, {})
+    
+    
+    #
+    #
+    #    
+    def getKeyValueFromPrefix(self, prefix):
+        starting_point = self.searchNode(prefix,returnNode,returnNode)
+        
+        #if invalid result (noMatchChild or falseResult), there is no bigger path
+        if starting_point == None:
+            return []
+        
+        return starting_point.genericDepthFirstTraversal(self._listEveryCompletePathAndValue, {})
     
     
 #################
