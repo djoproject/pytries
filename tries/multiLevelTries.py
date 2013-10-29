@@ -16,17 +16,18 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#TODO        
+#TODO  
+    #SEVERE CHANGE merge multiLevelNode in multiLevelTries
+        #the subnode of a multiLevelTries will be multiLevelTries
+            #it is so more logical...
+      
     #comment everything
         #IN PROGRESS
-            
-    #traversal
-        #TODO
-            #manage the stop traversal
-            
-        #how to make breadth first traversal ?
-            #TODO
-        
+    
+    #build advanced search function 
+        #like the advanced search of tries
+        #goal : solve the call command with args, the args are not in the tree
+    
 from tries import *
 from exception import triesException
 
@@ -104,7 +105,7 @@ class multiLevelTries(object):
     # @param stringList : array string
     # @param value : object to store
     #
-    def insert(self, stringList, value, anyStringSuffix="*"):
+    def insert(self, stringList, value, stopTraversalAtThisNode = False, anyStringSuffix="*"):
         #manage anyString
         anyStringEnable = [False] * len(stringList)
         if len(anyStringSuffix) > 0:
@@ -128,6 +129,7 @@ class multiLevelTries(object):
             if i == len(stringList)-1:
                 node = currentTreeWhereInsert.insert(stringList[i], multiLevelNode(), anyStringEnable[i]).value
                 node.setValue(value)
+                node.stopTraversal = stopTraversalAtThisNode
                 return node
             else:
                 currentTreeWhereInsert = currentTreeWhereInsert.insert(stringList[i],multiLevelNode(), anyStringEnable[i]).value.nextTries
@@ -175,19 +177,50 @@ class multiLevelTries(object):
     #
     #
     #
-    def search(self,stringList) :
+    def search(self,stringList, strict = False) :
         #search for a similar existing stringList in the tree (partial result are accepted)
-        existingPath, existing, existingValue = self.searchNode(stringList, False)
+        existingPath, existing, existingValue = self.searchNode(stringList, strict)
         
         #return the value found
         if existing:
             return existingValue
+        
+        if strict:
+            raise triesException("(multiLevelTries) search, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #error managing
         if len(existingPath) -1 == len(stringList):
             raise triesException("Search, string list is uncomplete")
         
         raise triesException("Search, unknown string in level "+str(len(existingPath))+" <"+existingPath[-1][0]+">")
+    
+    def advancedSearch(self, stringList):
+        
+        #return more information about the search
+            #how many token have been found
+                #and so, how many token have been not found
+            #the value on the last find value
+            #the path found (with the token used)
+            #the remaining tokens
+            #... ?
+        
+        pass #TODO
+    
+    #
+    #
+    #
+    def setStopTraversal(self, stringList, state)
+        #test state
+        if type(state) != bool:
+            raise triesException("(multiLevelTries) setStopTraversal, try to set a non boolean value to the stop traversal state")
+        
+        #look after the string
+        existingPath, existing, existingValue = self.searchNode(stringList, True)
+        if not existing:
+            raise triesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+    
+        #update state
+        existingPath[-1][2].value.stopTraversal = state
     
     
     #
@@ -201,7 +234,7 @@ class multiLevelTries(object):
     #
     #
     #
-    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True):
+    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
         current        = self.levelOneTries
         currentPath    = [""]
         traversalState = initState
@@ -235,7 +268,7 @@ class multiLevelTries(object):
                 #level -= 1
             
             #TODO after or before the child visit ?
-            if current.isValueSet() and current.value.nextTries != None:
+            if current.isValueSet() and current.value.nextTries != None and (ignoreStopTraversal or not current.value.stopTraversal):
                 if "MTParent" in current.value.nextTries.__dict__.keys():
                     #print "del goto down"
                     del current.value.nextTries.MTParent
@@ -275,7 +308,7 @@ class multiLevelTries(object):
     #
     #
     #    
-    def genericBreadthFirstTraversal(self): 
+    def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False): 
         #init a queue
         Queue          = [(self.levelOneTries,level,self.key)]
         traversalState = initState
@@ -294,7 +327,7 @@ class multiLevelTries(object):
                 continue
             
             #add every child in the Queue
-            if current.value.nextTries != None:
+            if current.value.nextTries != None and (ignoreStopTraversal or not current.value.stopTraversal):
                 keyValue = current.getKeyValue()
                 newPath = [k]
                 newPath.extend(currentPath)
@@ -305,37 +338,20 @@ class multiLevelTries(object):
             if current.value.isValueSet():
                 traversalState = executeOnNode(currentPath, current, traversalState, level)
 
-#
-# cree un dictionnaitre de toutes les combinaisons cle/valeur existants
-# TODO convert it with traversal function
-#  
-def buildDictionnary(current,stringStack = []):
-    ret = {}
-    #print current.key
-    #print current.childs
-    if current.value != None:
-        if isinstance(current.value,tries):
-            stringStack.append(current.getCompleteName())
-            ret.update(buildDictionnary(current.value,stringStack))
-            stringStack.pop()
-        else:
-            key = ""
-            for s in stringStack:
-                key += s+" "
-            #print key
-            key += current.getCompleteName()
-            #print key
-            ret[key] = current.value
-            
-    for child in current.childs:
-        #print child.key
-        ret.update(buildDictionnary(child))
-            
-    return ret
+    def _inner_buildDictionnary(self, path, node, state, level):
+        state[path] = node.value
+
+    #
+    # return a dictionnary of every key/value in the tree
+    #
+    def buildDictionnary(self, stringList = [], ignoreStopTraversal):
+        #TODO find the starting node if needed
+        
+        #start the search TODO at the starting node
+        return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal)
+
     
-#TODO build advanced search function 
-    #like the advanced search of tries
-    #goal : solve the call command with args, the args are not in the tree
+
     
     
 
