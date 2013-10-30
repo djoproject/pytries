@@ -205,7 +205,7 @@ class multiLevelTries(object):
     #
     #
     #
-    def setStopTraversal(self, stringList, state)
+    def setStopTraversal(self, stringList, state):
         #test state
         if type(state) != bool:
             raise triesException("(multiLevelTries) setStopTraversal, try to set a non boolean value to the stop traversal state")
@@ -217,7 +217,6 @@ class multiLevelTries(object):
     
         #update state
         existingPath[-1][2].stopTraversal = state
-    
     
     #
     #
@@ -300,20 +299,21 @@ class multiLevelTries(object):
                     
             current = current.parent
         return traversalState
+
+### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### convert into the new MLTries design
     
 
     #
-    # TODO refactor
+    #
     #    
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False): 
-        #init a queue
-        Queue          = [self, -1, []]#[(self.levelOneTries,level,self.key)] #TODO no key argument in MLTries...
+        Queue          = []
         traversalState = initState
         
         #init the Queue with every key value of the first level tries
-        #keyValue = self.localTries.getKeyValue()
-        #for k,v in keyValue.iteritems():
-        #    Queue.append(v, 0, [k])
+        keyValue = self.localTries.getKeyValue()
+        for k,v in keyValue.iteritems():
+            Queue.append(v, 0, [k])
         
         #read the queue
         while len(Queue) > 0:
@@ -325,18 +325,11 @@ class multiLevelTries(object):
                 keyValue = current.localTries.getKeyValue()
                 
                 for k,v in keyValue.iteritems():
-                    newPath = currentPath[:] #TODO, bof bof niveau memoire de dupliquer tous les path comme ça
+                    newPath = currentPath[:]
                     newPath.append(k)
                     Queue.append(v, level+1, newPath)       
 
-            #TODO bof bof...
-                #le root n'a pas vraiment de niveau, et retourner -1 comme level, c'est naze
-                #en plus il n'y a pas de path...
-            if leve < 0:
-                continue
-
             #read value node with value
-            #if current.isValueSet(): #XXX execute on each node, even empty node
             traversalState = executeOnNode(currentPath, current, traversalState, level)
 
     def _inner_buildDictionnary(self, path, node, state, level):
@@ -344,13 +337,21 @@ class multiLevelTries(object):
 
     #
     # return a dictionnary of every key/value in the tree
-    # TODO finish it
     #
     def buildDictionnary(self, stringList = [], ignoreStopTraversal):
-        #TODO find the starting node if needed
+        #find the starting node if needed
+        startingPoint = self
+        if len(stringList) > 0:
+            existingPath, existing, existingValue = self.searchNode(stringList, True)
+
+            #raise an exception if the path does not exist
+            if not existing:
+                raise triesException("(multiLevelTries) buildDictionnary, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+        
+            startingPoint = existingPath[-1][2]
         
         #start the search TODO at the starting node
-        return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal)
+        return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
 
     
 
