@@ -365,7 +365,6 @@ class tries():
     
     
 ############ TRAVERSAL FUNCTION #####################################################################################################################################################################
-    
     #
     # start a traversal over all the node of the tree starting from the current node included
     #

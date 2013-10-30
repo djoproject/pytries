@@ -17,10 +17,6 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #TODO  
-    #SEVERE CHANGE merge multiLevelNode in multiLevelTries
-        #the subnode of a multiLevelTries will be multiLevelTries
-            #it is so more logical...
-      
     #comment everything
         #IN PROGRESS
     
@@ -28,13 +24,19 @@
         #like the advanced search of tries
         #goal : solve the call command with args, the args are not in the tree
     
+    #check how the intermediate node are managed
+        #insert (especialy this one)
+        #remove
+    
 from tries import *
 from exception import triesException
 
-class multiLevelNode(object):
-    def __init__(self):
-        self.nextTries     = tries()
-        self.value         = None
+class multiLevelTries(object):
+    
+    def __init__(self, parentMLTries = None):
+        "this method init the multiLevelTries with an empty tries root"
+        self.localTries = tries() #levelOneTries
+        self.parentMLTries = parentMLTries
         self.valueSet      = False
         self.stopTraversal = False
     
@@ -49,55 +51,49 @@ class multiLevelNode(object):
     def isValueSet(self):
         return self.valueSet
 
-
-class multiLevelTries(object):
-    
-    def __init__(self):
-        "this method init the multiLevelTries with an empty tries root"
-        self.levelOneTries = tries()
-    
     #
     # @parameter stringList is the list of string token to find in the multiTries
     # @parameter onlyPerfectMatch is a boolean to limit the search to the perfect match result, if it is set to false, the partial result will be allowed
     # @return the number of matching token, 
     #
     def searchNode(self, stringList, onlyPerfectMatch=True):
+        #check string list
         if stringList == None or type(stringList) != list or len(stringList) < 0:
             raise triesException("need string token to insert a new value, no token found")
         
-        #because the value inserted is always stored in the root of a tries, we need to add an empty string
-        #stringList = stringList[:] #clone the stringList before to update it, because an update here can have an impact outside the function
-        #stringList.append("")
-        
         #SEARCH a similar String list
-        tries_tmp      = self.levelOneTries #current tries where make the search (at init, it is the first level)
-        triesLinked    = [] #list to store the result
-        foundValue     = False #did we find the result ?
-        value          = None #result match ?
+        parentMLTries_tmp = None
+        MLTries_tmp       = self
+        triesLinked       = [] #list to store the result
+        foundValue        = False #did we find the result ?
+        value             = None #result match ?
         for i in range(0,len(stringList)): #for each token of the string list to insert
-            #TODO test if stringList[i] is a string
+            #test if stringList[i] is a string
+            if type(stringList[i]) != str:
+                raise triesException("(multiLevelTries) searchNode, try to search a non string value : <"+str(stringList[i])+">")
             
             #search the string[i] in the current tries
+            parentMLTries_tmp = MLTries_tmp
             if onlyPerfectMatch:
-                tmp = tries_tmp.search(stringList[i])
+                MLTries_tmp = MLTries_tmp.localTries.search(stringList[i])
             else:
-                tmp = tries_tmp.searchUniqueFromPrefix(stringList[i]) #allow partial but non ambigous result
+                MLTries_tmp = MLTries_tmp.localTries.searchUniqueFromPrefix(stringList[i]) #allow partial but non ambigous result
             
-            #store the result (token, in which tries the token had been found, the value associated to the token)
-            triesLinked.append( (stringList[i], tries_tmp, tmp,) )
-            #print stringList[i], tries_tmp, tmp
-            #print
-            #is there a value node here ?
-            if tmp != None and tmp.isValueSet():
-                if i == len(stringList)-1: #every string had been consumed
-                    foundValue  = tmp.value.valueSet
-                    value       = tmp.value.value        
-                elif tmp.value.nextTries != None: #look for another sub level to explore
-                    tries_tmp = tmp.value.nextTries
-                    continue
-                            
-            #at this point, we found a result or the path does not exist in the tree
-            return triesLinked, foundValue, value
+            #store the result (string token, the MLTries parent, and the MLTries child or None if not found)
+            triesLinked.append( (stringList[i],parentMLTries_tmp, MLTries_tmp,) )
+
+            #is there a match ?
+            if MLTries_tmp != None:
+                #every string had been consumed ?
+                if i == len(stringList)-1:
+                    return triesLinked, MLTries_tmp.valueSet, MLTries_tmp.value
+                
+                #continue to explore, there are still string tokens and tries to explore 
+                continue
+            #no more tries to explore, we stop the search
+            break
+        #at this point, we found a result or the path does not exist in the tree
+        return triesLinked, False, None
     
     
     #
@@ -106,7 +102,7 @@ class multiLevelTries(object):
     # @param value : object to store
     #
     def insert(self, stringList, value, stopTraversalAtThisNode = False, anyStringSuffix="*"):
-        #manage anyString
+        #identify anyString
         anyStringEnable = [False] * len(stringList)
         if len(anyStringSuffix) > 0:
             for i in range(len(stringList)):
@@ -120,21 +116,17 @@ class multiLevelTries(object):
         if existing:
             raise triesException("Insert, the path <"+" ".join(stringList)+"> already exists in the multi tries")
         
-        #determine where the string list must be insert, searchNode always stores at least one value in existingPath
-        currentTreeWhereInsert = existingPath[-1][1]
+        #determine where the string list must be insert, searchNode always return at least one value in existingPath
+            #in the worst case, it contains [(stringList[0], self, None)]
+        currentMLTriesWhereInsert = existingPath[-1][1] #the token is not found in the last MLTries
         
         #insert the path
-        #print stringList
         for i in range(len(existingPath)-1, len(stringList)): #from the first index of a non common string to the end of the list
-            if i == len(stringList)-1:
-                node = currentTreeWhereInsert.insert(stringList[i], multiLevelNode(), anyStringEnable[i]).value
-                node.setValue(value)
-                node.stopTraversal = stopTraversalAtThisNode
-                return node
-            else:
-                currentTreeWhereInsert = currentTreeWhereInsert.insert(stringList[i],multiLevelNode(), anyStringEnable[i]).value.nextTries
-        
-    
+            currentMLTriesWhereInsert = currentMLTriesWhereInsert.localTries.insert(stringList[i],multiLevelTries(currentMLTriesWhereInsert), anyStringEnable[i]).value
+
+        #set the value and its args
+        currentMLTriesWhereInsert.setValue(value)
+        node.stopTraversal = stopTraversalAtThisNode
 
     #
     #
@@ -147,17 +139,20 @@ class multiLevelTries(object):
         if not existing:
             raise triesException("Remove, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
+        #unset value
+        existingPath[-1][2].unsetValue()
+        
         #remove the node from bottom up
         for i in range(0,len(existingPath)):
             #next node index to remove
             index = len(existingPath) - 1 - i
             
+            #child to remove can't have value or child in the tries
+            if existingPath[index][2].isValueSet() or not existingPath[index][2].localTries.isEmpty():
+                break
+            
             #remove the value stored
             existingPath[index][1].remove(existingPath[index][0])
-            
-            #tree is empty ?
-            if not existingPath[index][1].isEmpty():
-                break
     
     
     #
@@ -171,7 +166,7 @@ class multiLevelTries(object):
             raise triesException("Update, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #set the new value (the last node of the path contains a tries with an empty key tries, this node have to be updated)
-        existingPath[-1][2].value.setValue(newValue)
+        existingPath[-1][2].setValue(newValue)
     
 
     #
@@ -205,7 +200,8 @@ class multiLevelTries(object):
             #... ?
         
         pass #TODO
-    
+
+
     #
     #
     #
@@ -220,7 +216,7 @@ class multiLevelTries(object):
             raise triesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
     
         #update state
-        existingPath[-1][2].value.stopTraversal = state
+        existingPath[-1][2].stopTraversal = state
     
     
     #
@@ -230,9 +226,10 @@ class multiLevelTries(object):
         return repr(self.levelOneTries)
     
     
-    
+### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### convert into the new MLTries design
     #
-    #
+    # TODO refactor
+    # TODO execute on every node, not only the value node
     #
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
         current        = self.levelOneTries
@@ -306,43 +303,48 @@ class multiLevelTries(object):
     
 
     #
-    #
+    # TODO refactor
     #    
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False): 
         #init a queue
-        Queue          = [(self.levelOneTries,level,self.key)]
+        Queue          = [self, -1, []]#[(self.levelOneTries,level,self.key)] #TODO no key argument in MLTries...
         traversalState = initState
         
         #init the Queue with every key value of the first level tries
-        keyValue = self.levelOneTries.getKeyValue()
-        for k,v in keyValue.iteritems():
-            Queue.append(v, 0, [k])
+        #keyValue = self.localTries.getKeyValue()
+        #for k,v in keyValue.iteritems():
+        #    Queue.append(v, 0, [k])
         
         #read the queue
         while len(Queue) > 0:
             #dequeu current node
             current, level, currentPath = Queue.popleft()
             
-            if not current.isValueSet():
-                continue
-            
             #add every child in the Queue
-            if current.value.nextTries != None and (ignoreStopTraversal or not current.value.stopTraversal):
-                keyValue = current.getKeyValue()
-                newPath = [k]
-                newPath.extend(currentPath)
+            if not current.localTries.isEmpty() and (ignoreStopTraversal or not current.stopTraversal):
+                keyValue = current.localTries.getKeyValue()
+                
                 for k,v in keyValue.iteritems():
-                    Queue.append(v, level+1, newPath)
+                    newPath = currentPath[:] #TODO, bof bof niveau memoire de dupliquer tous les path comme ça
+                    newPath.append(k)
+                    Queue.append(v, level+1, newPath)       
+
+            #TODO bof bof...
+                #le root n'a pas vraiment de niveau, et retourner -1 comme level, c'est naze
+                #en plus il n'y a pas de path...
+            if leve < 0:
+                continue
 
             #read value node with value
-            if current.value.isValueSet():
-                traversalState = executeOnNode(currentPath, current, traversalState, level)
+            #if current.isValueSet(): #XXX execute on each node, even empty node
+            traversalState = executeOnNode(currentPath, current, traversalState, level)
 
     def _inner_buildDictionnary(self, path, node, state, level):
         state[path] = node.value
 
     #
     # return a dictionnary of every key/value in the tree
+    # TODO finish it
     #
     def buildDictionnary(self, stringList = [], ignoreStopTraversal):
         #TODO find the starting node if needed
