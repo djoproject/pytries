@@ -340,6 +340,10 @@ class multiLevelTries(object):
     #
     # return a dictionnary of every key/value in the tree
     #
+    # TODO add an option to store the complete path inside the dictionary
+    #     concat the stringList with the key
+    #     not exaclty, get the complete path from the tries
+    #
     def buildDictionnary(self, stringList = [], ignoreStopTraversal=False):
         #find the starting node if needed
         startingPoint = self
@@ -375,6 +379,9 @@ class multiLevelTriesSearchResult(object):
             
                 #subcase, the tries where make the search is empty
                 self.noMoreTries = existingPath[-1][1].localTries.isEmpty()
+            #else:
+            # TODO is it possible to have the last node with a value different of None without consume the entire stringList ????
+            #     if no, put "self.pathExistButNoValue = True" here and remove "if self.tokenFoundCount == len(stringList):"
             
             if self.tokenFoundCount == len(stringList):
                 self.pathExistButNoValue = True
@@ -406,9 +413,13 @@ class multiLevelTriesSearchResult(object):
         return self.existingValue
     
     def isAvalueOnTheLastTokenFound(self):
+        #TODO on veut le dernier token found, not the last search in the existingPath
+    
         return existingPath[-1][2] != None and existingPath[-1][2].isValueSet()
         
     def getLastTokenFoundValue(self):
+        #TODO see in the previous meth
+    
         if not self.isAvalueOnTheLastTokenFound():
             raise triesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value on the last token found")
         
