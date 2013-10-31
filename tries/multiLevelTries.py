@@ -20,13 +20,6 @@
     #comment everything
         #IN PROGRESS
     
-    #check how the intermediate node are managed
-        #remove
-        
-    #if this value existingPath[-1][2] is different of None, we have a match but not necessary a value match
-        #check if this property is used in every appropriate place ()
-        #especialy in multiLevelTriesSearchResult
-    
 from tries import *
 from exception import triesException,pathExistsTriesException, pathNotExistsTriesException
 
@@ -344,9 +337,10 @@ class multiLevelTries(object):
     #     concat the stringList with the key
     #     not exaclty, get the complete path from the tries
     #
-    def buildDictionnary(self, stringList = [], ignoreStopTraversal=False):
+    def buildDictionnary(self, stringList = [], ignoreStopTraversal=False, addPrexix= False):
         #find the starting node if needed
         startingPoint = self
+        prefix = []
         if len(stringList) > 0:
             existingPath, existing, existingValue = self.searchNode(stringList, True)
 
@@ -356,35 +350,24 @@ class multiLevelTries(object):
         
             startingPoint = existingPath[-1][2]
         
+            #build prefix
+            if addPrexix:
+                pass #TODO need the tries that contains the mltries, but not directly available, need to modify the searchNode function
+        
         #start the search
         return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
 
 class multiLevelTriesSearchResult(object):
     def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch):
         self.stringList    = stringList
-                
+        self.existingPath  = existingPath
         self.existing      = existing
         self.existingValue = existingValue
-        
-        self.pathExistButNoValue    = False 
-        self.notFoundInTheLastTries = False
-        self.noMoreTries            = False
         self.tokenFoundCount        = len(existingPath)
         
-        if not self.existing:
-            #if the last tries result was None, the existingPath is a little shorter
-            if existingPath[-1][2] == None: #token not found in the last tries
-                self.tokenFoundCount        -= 1
-                self.notFoundInTheLastTries = True
-            
-                #subcase, the tries where make the search is empty
-                self.noMoreTries = existingPath[-1][1].localTries.isEmpty()
-            #else:
-            # TODO is it possible to have the last node with a value different of None without consume the entire stringList ????
-            #     if no, put "self.pathExistButNoValue = True" here and remove "if self.tokenFoundCount == len(stringList):"
-            
-            if self.tokenFoundCount == len(stringList):
-                self.pathExistButNoValue = True
+        #special case, the last token searched is in the existingPath but if it is not found, it does not count as a existing part of the path
+        if not self.existing and existingPath[-1][2] == None:
+            self.tokenFoundCount -= 1
 
         self.tokenNotFound = len(stringList) - self.tokenFoundCount
         
@@ -413,17 +396,13 @@ class multiLevelTriesSearchResult(object):
         return self.existingValue
     
     def isAvalueOnTheLastTokenFound(self):
-        #TODO on veut le dernier token found, not the last search in the existingPath
-    
-        return existingPath[-1][2] != None and existingPath[-1][2].isValueSet()
+        return self.tokenFoundCount > 0 and existingPath[self.tokenFoundCount-1][2] != None and existingPath[self.tokenFoundCount-1][2].isValueSet()
         
     def getLastTokenFoundValue(self):
-        #TODO see in the previous meth
-    
         if not self.isAvalueOnTheLastTokenFound():
             raise triesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value on the last token found")
         
-        return existingPath[-1][1].value
+        return existingPath[self.tokenFoundCount-1][1].value
     
     def isAllTokenHasBeenConsumed(self):
         return len(self.stringList) == self.tokenFoundCount
@@ -434,21 +413,22 @@ class multiLevelTriesSearchResult(object):
     # there are still token to use but no more tries
     #    occurs when the last explored tries is empty
     #
-    def isNoMoreTriesAvailable(self):
-        return self.noMoreTries
+    def isLastExploredTriesEmpty(self):
+        return existingPath[-1][1].localTries.isEmpty()
     
     #
     # the last token searched was not found in the 
     #    occurs when last explored tries is not empty
     #
     def isTokenNotFoundInLastTries(self):
-        return self.notFoundInTheLastTries
-    
+
+        return existingPath[-1][2] == None and not self.existing 
     #
     # the path has been completly found be there is no value attached to this path
     #
-    def isNoValueAssociatedAtThisPath(self):
-        return self.pathExistButNoValue
+    def isPathCorrespondsToNonValueNode(self):
+        return self.existingPath[-1][2] != None and not self.existing
+        #return self.pathExistButNoValue
 
 
 
