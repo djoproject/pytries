@@ -1,0 +1,29 @@
+TODO
+    -what about the alias ?
+        managed outside of the mltries
+
+DATA TEST
+    charset = [a,b,c,d]
+    a string is made with three char (64 pos)
+    a string path is made with 1, 2 or 3 string  (262144 pos)
+
+PROPERTIES
+    -hypothesis : the tries properties are valid
+    -each string list corresponds to an existing value in the tree
+    -each value node correspond to an existing string list
+    -no redundant path
+        each mltries store only one occurence of a string
+    -no cycle
+        use a coloring algorithm to test that
+
+TEST
+    -test the properties
+    -test error case
+        like what ?
+            -insert a string twice
+            -look after exception triggering
+    -test removal 
+    -test update
+        -on several level
+    -test the two traversal
+        

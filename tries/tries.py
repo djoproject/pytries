@@ -16,6 +16,10 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+#TODO
+    #-test genericBreadthFirstTraversal
+    #-specialize the exception (e.g. pathExistsTriesException, pathNotExistsTriesException)
+
 from exception import triesException
 from utils import noneFunc, charInCommons, returnNode
 
@@ -418,7 +422,6 @@ class tries():
     
     
     #
-    # TODO test it
     # http://en.wikipedia.org/wiki/Breadth-first_search
     #
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None):

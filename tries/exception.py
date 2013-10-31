@@ -16,6 +16,14 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+class pathNotExistsTriesException(Exception):
+    def __init__(self,value):
+        triesException.__ini__(self, value)
+
+class pathExistsTriesException(Exception):
+    def __init__(self,value):
+        triesException.__ini__(self, value)
+
 class triesException(Exception):
     def __init__(self,value):
         self.value = value
