@@ -20,6 +20,8 @@
     #comment everything
         #IN PROGRESS
     
+    #pourquoi ne pas pouvoir stocker une chqine vide ?
+    
 from tries import *
 from exception import triesException,pathExistsTriesException, pathNotExistsTriesException
 
@@ -28,22 +30,26 @@ class multiLevelTries(object):
     def __init__(self, parentMLTries = None):
         "this method init the multiLevelTries with an empty tries root"
         self.localTries = tries() #levelOneTries
-        self.parentMLTries = parentMLTries
+        self.parentMLTries = parentMLTries #TODO a quoi sert cette variable si elle ne sert pas dans le traversal ?
         self.valueSet      = False
         self.value         = None
         self.stopTraversal = False
+    
     
     def setValue(self,value):
         self.valueSet = True
         self.value    = value
     
+    
     def unsetValue(self):
         self.valueSet = False
         self.value    = None
     
+    
     def isValueSet(self):
         return self.valueSet
-
+    
+    
     #
     # @parameter stringList is the list of string token to find in the multiTries
     # @parameter onlyPerfectMatch is a boolean to limit the search to the perfect match result, if it is set to false, the partial result will be allowed
@@ -51,8 +57,8 @@ class multiLevelTries(object):
     #
     def searchNode(self, stringList, onlyPerfectMatch=True):
         #check string list
-        if stringList == None or type(stringList) != list or len(stringList) < 0:
-            raise triesException("(multiLevelTries) searchNode, need string token to insert a new value, no token found")
+        if stringList == None or not hasattr(stringList, '__iter__') or len(stringList) < 0:
+            raise triesException("(multiLevelTries) searchNode, need string token to search a value, no token found")
         
         #SEARCH a similar String list
         parentMLTries_tmp = None
@@ -92,6 +98,7 @@ class multiLevelTries(object):
             break
         #at this point, we found a result or the path does not exist in the tree
         return triesLinked, False, None
+    
     
     
     #
@@ -157,6 +164,7 @@ class multiLevelTries(object):
             existingPath[index][1].remove(existingPath[index][0])
     
     
+
     #
     #
     #
@@ -185,12 +193,13 @@ class multiLevelTries(object):
         if onlyPerfectMatch:
             raise pathNotExistsTriesException("(multiLevelTries) search, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
-        #error managing
+        #error management
         if len(existingPath) -1 == len(stringList):
             raise triesException("(multiLevelTries) search, string list is uncomplete")
         
         raise triesException("(multiLevelTries) search, unknown string in level "+str(len(existingPath))+" <"+existingPath[-1][0]+">")
     
+
     def advancedSearch(self, stringList, onlyPerfectMatch=True):
         #make the search and fill a result object
         existingPath, existing, existingValue = self.searchNode(stringList, onlyPerfectMatch)
@@ -213,37 +222,56 @@ class multiLevelTries(object):
         #update state
         existingPath[-1][2].stopTraversal = state
     
+
     #
     #
     #
     def __repr__(self):
-        return repr(self.levelOneTries)
+        return repr(self.localTries)
     
     
-### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### convert into the new MLTries design
+    def exploreNextTries(self, level, currentPath, current):
+        currentPath.append("")
+        current.value.localTries.MTParent = current
+        return level+1, current.value.localTries
+    
+### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### TODO ### convert into the new MLTries design    
     #
-    # TODO refactor with the new mltries structure
-    # TODO execute on every node, not only the value node
+    # cas de figure qui merde, un noeud qui contient un mltries et des childs
+    #   en preOrder
+    #   ça risque de boucler, tester
     #
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
-        current        = self.levelOneTries
+        current        = self.localTries
         currentPath    = [""]
         traversalState = initState
         level          = 0
          
         while current != None:
+            #print "currentPath",currentPath
             #print "current", level, len(currentPath),current
-            ### traverse the node ###
+        ### traverse the node ###
             if "traversed" not in current.__dict__.keys():
                 currentPath[level] += current.key
-                if preOrder and current.isValueSet() and current.value.isValueSet():
+                if preOrder and current.isValueSet():
                     traversalState = executeOnNode(currentPath, current.value, traversalState, level)
                         
                 current.traversed = True
-            
-            ### identify next node to explore ###
-            #is there some child to explore
-            if len(current.childs) > 0:
+            #print "1"
+            if preOrder:
+                #explore next level tries
+                if current.isValueSet() and not current.value.localTries.isEmpty() and (ignoreStopTraversal or not current.value.stopTraversal):
+                    if "MTParent" in current.value.localTries.__dict__.keys():
+                        #print "del goto down"
+                        del current.value.localTries.MTParent
+                    else:
+                        #print "goto down ", len(currentPath)
+                        level, current = self.exploreNextTries(level, currentPath, current)
+                        #print "continue to bottom level (1)", str(current)
+                        continue
+            #print "2"
+        ### identify next node to explore ###
+            if len(current.childs) > 0: #is there some child to explore ?
                 #does the exploration already start ?
                 if "traversal_index" not in current.__dict__.keys():
                     current.traversal_index = 0
@@ -252,52 +280,61 @@ class multiLevelTries(object):
                 if current.traversal_index < len(current.childs):
                     current.traversal_index += 1
                     current = current.childs[current.traversal_index -1]
+                    #print "continue to next child", str(current)
                     continue
                 
                 #no more need the index
                 del current.traversal_index
-                #level -= 1
-            
-            #TODO after or before the child visit ?
-            if current.isValueSet() and current.value.nextTries != None and (ignoreStopTraversal or not current.value.stopTraversal):
-                if "MTParent" in current.value.nextTries.__dict__.keys():
-                    #print "del goto down"
-                    del current.value.nextTries.MTParent
-                else:
-                    #print "goto down ", len(currentPath)
-                    level += 1
-                    currentPath.append("")
-                    current.value.nextTries.MTParent = current
-                    current = current.value.nextTries
-                    continue
-            
+            #print "3"                
             #post order traversal
-            if not preOrder and current.isValueSet() and current.value.isValueSet():
-                traversalState = executeOnNode(currentPath, current, traversalState, level)
-            
+            if not preOrder and current.isValueSet():
+                #print "plop"
+                #explore next level tries
+                if not current.value.localTries.isEmpty() and (ignoreStopTraversal or not current.value.stopTraversal):
+                    if "MTParent" in current.value.localTries.__dict__.keys():
+                        del current.value.localTries.MTParent
+                    else:
+                        level, current = self.exploreNextTries(level, currentPath, current)
+                        #print "continue to bottom level (2)", str(current)
+                        continue
+                        
+                traversalState = executeOnNode(currentPath, current.value, traversalState, level)
+            #print "4"
             #remove the key string of the current node from the path
             if len(current.key) > 0:
                 currentPath[level] = currentPath[level][:-len(current.key)]
             
             #back to the parent
             del current.traversed
-            
+            #print "5"
             #go up in the multilevel tries
-            if current.parent == None and "MTParent" in current.__dict__.keys():
+            #if current.isValueSet():
+            #    print "check 5, ",current.parent, current.isValueSet(), current.value.parentMLTries
+            #    print current.parent == None, current.isValueSet(), current.value.parentMLTries != None
+            #else:
+            #    print "check 5, ",current.parent, current.isValueSet()
+            #    print current.parent == None, current.isValueSet()
+            #print "instance tries ?",isinstance(current, tries)
+            #print "parent none ?", current.parent == None
+            #print "is value set ?", current.isValueSet()
+            
+            if current.parent == None and hasattr(current,"MTParent") and current.MTParent: # current.isValueSet() and current.value.parentMLTries != None:
                 #print "goto up", len(currentPath)
                 level -= 1
                 oldCurrent = current
                 currentPath = currentPath[:-1]
-                current = current.MTParent
-                #del oldCurrent.MTParent
+                current = current.MTParent #current.value.parentMLTries
+                #print "####### continue to parent", str(current)
                 continue
                     
             current = current.parent
+            #print "6"
+        ### return the final state
         return traversalState
-
+    
 ### END  XXX ### XXX ### XXX ### XXX ### XXX ### XXX ### XXX ### XXX ### XXX ### convert into the new MLTries design
     
-
+    
     #
     #
     #    
@@ -323,13 +360,15 @@ class multiLevelTries(object):
                     newPath = currentPath[:]
                     newPath.append(k)
                     Queue.append(v, level+1, newPath)       
-
+            
             #read value node with value
             traversalState = executeOnNode(currentPath, current, traversalState, level)
+    
 
     def _inner_buildDictionnary(self, path, node, state, level):
         state[path] = node.value
-
+    
+    
     #
     # return a dictionnary of every key/value in the tree
     #
@@ -343,19 +382,21 @@ class multiLevelTries(object):
         prefix = []
         if len(stringList) > 0:
             existingPath, existing, existingValue = self.searchNode(stringList, True)
-
+            
             #raise an exception if the path does not exist
             if not existing:
                 raise pathNotExistsTriesException("(multiLevelTries) buildDictionnary, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
-        
+            
             startingPoint = existingPath[-1][2]
-        
+            
             #build prefix
             if addPrexix:
                 pass #TODO need the tries that contains the mltries, but not directly available, need to modify the searchNode function
         
         #start the search
         return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
+    
+    
 
 class multiLevelTriesSearchResult(object):
     def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch):
@@ -368,9 +409,9 @@ class multiLevelTriesSearchResult(object):
         #special case, the last token searched is in the existingPath but if it is not found, it does not count as a existing part of the path
         if not self.existing and existingPath[-1][2] == None:
             self.tokenFoundCount -= 1
-
-        self.tokenNotFound = len(stringList) - self.tokenFoundCount
         
+        self.tokenNotFound = len(stringList) - self.tokenFoundCount
+    
     def getFoundToken(self):
         return spaceChar.join(stringList[:self.tokenFoundCount])
     
@@ -379,16 +420,16 @@ class multiLevelTriesSearchResult(object):
     
     def getTokenFoundCount(self):
         return self.tokenFoundCount
-        
+    
     def getTokenNotFoundCount(self):
         return self.tokenNotFound
-        
+    
     def getTotalTokenCount(self):
         return len(stringList)
     
     def isValueFound(self):
         return self.existing
-        
+    
     def getValue(self):
         if not self.existing:
             raise triesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value found on this path")
@@ -397,7 +438,7 @@ class multiLevelTriesSearchResult(object):
     
     def isAvalueOnTheLastTokenFound(self):
         return self.tokenFoundCount > 0 and existingPath[self.tokenFoundCount-1][2] != None and existingPath[self.tokenFoundCount-1][2].isValueSet()
-        
+    
     def getLastTokenFoundValue(self):
         if not self.isAvalueOnTheLastTokenFound():
             raise triesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value on the last token found")
@@ -421,7 +462,6 @@ class multiLevelTriesSearchResult(object):
     #    occurs when last explored tries is not empty
     #
     def isTokenNotFoundInLastTries(self):
-
         return existingPath[-1][2] == None and not self.existing 
     #
     # the path has been completly found be there is no value attached to this path
@@ -429,6 +469,6 @@ class multiLevelTriesSearchResult(object):
     def isPathCorrespondsToNonValueNode(self):
         return self.existingPath[-1][2] != None and not self.existing
         #return self.pathExistButNoValue
-
+    
 
 
