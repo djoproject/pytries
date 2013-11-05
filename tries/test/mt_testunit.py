@@ -67,7 +67,7 @@ class TraversalTest(unittest.TestCase):
     #every inserted stringList are in the tree
     def test_everyKeyInTheTree(self):
         for k,v in self.keyValue.iteritems():
-            self.assertTrue( self.mlt.search(k) == v) #TODO search need a list, not a string
+            self.assertTrue( self.mlt.search(k) == v)
     
     
     def _inner_test_everyValueCorrespondToAKey(self, path, node, state, level):
@@ -100,15 +100,57 @@ class TraversalTest(unittest.TestCase):
     
     def _inner_test_traversal(self, currentPath, value, traversalState, level):
         
-        print traversalState, len(self.keyValue.keys())
+        print currentPath, traversalState, len(self.keyValue.keys())
         self.assertTrue(len(self.keyValue.keys()) > traversalState)
-        
+
         if value != None and value.isValueSet():
             return traversalState+1 
         return traversalState
     
     def test_traversal(self):
-        self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,0, True)
+        self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,0, False)
+    
+    #TODO test both TRAVERSAL
+        #test stopTraversal
+        #verifier que chaque chaine apparait une et une seule fois
+            #dictionnaire pendant l'explore
+            #verification du nombre de noeud exploré à la fin
+        #verifier que l'on peut faire 2 traversal consecutif
+            #que des informations ne stagnent pas d'un precedant traversal
+        
+    
+    #test buildDictionnary
+        #prblm with the traversal, no node explored...
+    def test_buildDictWithoutPrefix(self):
+        dico = self.mlt.buildDictionnary()
+        self.assertTrue( len(dico) == len(self.keyValue))
+        
+        for k,v in dico.iteritems():
+            print k,v
+            
+            #TODO compare value with the value stored in self.keyValue
+        
+    def test_buildDictWithPrefix(self):
+        pass #TODO
+    
+    #test update process
+        #changer toutes les valeurs et vérifier que c'est bon
+    def test_update(self):
+        newKeyVal = {}
+        for k,v in self.keyValue.iteritems():
+            newVal = "plop"+v
+            self.mlt.update(k, newVal)
+            newKeyVal[k] = newVal
+    
+        for k,v in newKeyVal.iteritems():
+            self.assertTrue( self.mlt.search(k) == v)
+        
+        
+    #TODO test the remove operation
+        #remove all
+        #remove value stored at intermediate node
+        #remove end value
+        
     
 if __name__ == '__main__':
     unittest.main()
