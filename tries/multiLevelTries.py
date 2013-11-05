@@ -342,7 +342,7 @@ class multiLevelTries(object):
                     Queue.append(v, level+1, newPath)       
             
             #read value node with value
-            traversalState = executeOnNode(currentPath, current, traversalState, level)
+            traversalState = executeOnNode(currentPath, current.value, traversalState, level)
     
 
     def _inner_buildDictionnary(self, path, node, state, level):

@@ -98,27 +98,52 @@ class TraversalTest(unittest.TestCase):
     def test_tryToSearchANonExistingPath(self):
         self.assertRaises(triesException,self.mlt.search,["z"])
     
-    def _inner_test_traversal(self, currentPath, value, traversalState, level):
-        
-        print currentPath, traversalState, len(self.keyValue.keys())
-        self.assertTrue(len(self.keyValue.keys()) > traversalState)
-
-        if value != None and value.isValueSet():
-            return traversalState+1 
-        return traversalState
-    
-    def test_traversal(self):
-        self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,0, False)
-    
     #TODO test both TRAVERSAL
         #test stopTraversal
-        #verifier que chaque chaine apparait une et une seule fois
-            #dictionnaire pendant l'explore
-            #verification du nombre de noeud exploré à la fin
-        #verifier que l'on peut faire 2 traversal consecutif
-            #que des informations ne stagnent pas d'un precedant traversal
-        
+            #how ?
+                #set some node at stopTraversal
+                    #every layer 2, example of layer 2 [aa, aa]
+                    #so we test the setStopTraveral
+                
     
+    def _inner_test_traversal(self, currentPath, node, traversalState, level):
+        #check if it the path has already been met
+        self.assertTrue(tuple(currentPath) not in traversalState[0])
+        traversalState[0][tuple(currentPath)] = True
+        
+        #check if the node MLTries has been already met
+        self.assertTrue(node.value not in traversalState[1])
+        traversalState[1][node.value] = True
+        
+        #incremente the value node count
+        newCount = traversalState[2]
+        if node.isValueSet():
+            #check if the key/value pair exists, and so if the path is correct
+            self.assertTrue( tuple(currentPath) in self.keyValue and self.keyValue[tuple(currentPath)] == node.value )
+        
+            newCount += 1
+        
+        #check level
+        self.assertTrue(len(currentPath) == level+1)
+                    
+        return (traversalState[0],traversalState[1],newCount,)
+    
+    def test_preOrderTraversal(self):
+        self.assertTrue( self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,({},{},0,), True)[2] == len(self.keyValue.keys())
+
+        #do the traversal again, an execution of the traversal can't influence a second execution
+        self.assertTrue( self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,({},{},0,), True)[2] == len(self.keyValue.keys())
+
+    def test_postOrderTraversal(self):
+        self.assertTrue( self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,({},{},0,), False)[2] == len(self.keyValue.keys())
+
+        #do the traversal again, an execution of the traversal can't influence a second execution
+        self.assertTrue( self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,({},{},0,), False)[2] == len(self.keyValue.keys())
+
+        
+    def test_BreadthFirstTraversal(self):
+        self.assertTrue( genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.keyValue.keys())
+            
     #test buildDictionnary
         #prblm with the traversal, no node explored...
     def test_buildDictWithoutPrefix(self):
@@ -127,11 +152,17 @@ class TraversalTest(unittest.TestCase):
         
         for k,v in dico.iteritems():
             print k,v
-            
-            #TODO compare value with the value stored in self.keyValue
-        
+            self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
+
     def test_buildDictWithPrefix(self):
         pass #TODO
+            #TODO which prefix ?
+                #random ? nop
+                #every layer one prefix
+                #then layer two
+                
+        #TODO compute and check the number of value to print
+        #TODO check if the prefix is always correct
     
     #test update process
         #changer toutes les valeurs et vérifier que c'est bon
@@ -146,10 +177,23 @@ class TraversalTest(unittest.TestCase):
             self.assertTrue( self.mlt.search(k) == v)
         
         
-    #TODO test the remove operation
+    #test the remove operation
         #remove all
-        #remove value stored at intermediate node
-        #remove end value
+    def test_removeAll(self):
+        for k,v in self.keyValue.iteritems():
+            self.mlt.remove(k)
+            
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+    
+    def test_removeIntermediateNodeWithValue():
+        pass #TODO remove value stored at intermediate node
+    
+    def test_removeIntermediateNodeWithoutValue():
+        pass #TODO
+    
+    def test_removeEndValue():
+        pass #TODO remove end value
         
     
 if __name__ == '__main__':

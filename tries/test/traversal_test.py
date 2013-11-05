@@ -56,6 +56,12 @@ class TraversalTest(unittest.TestCase, ElementaryTest):
     def test_traversal(self):
         #the number of traversal is equal to the number of node
         self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, ({},{},0,))[2] == len(self.insertedKey))
+        
+        #do the traversal again, an execution of the traversal can't influence a second execution
+        self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, ({},{},0,))[2] == len(self.insertedKey))
+
+    def test_BreadthFirstTraversal(self):
+        pass #TODO
 
 if __name__ == '__main__':
     unittest.main()
