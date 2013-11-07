@@ -231,7 +231,7 @@ class multiLevelTries(object):
         return repr(self.localTries)
     
     
-    def exploreNextTries(self, level, currentPath, current):
+    def _exploreNextTries(self, level, currentPath, current):
         currentPath.append("")
         current.value.localTries.MTParent = current
         return level+1, current.value.localTries
@@ -258,7 +258,7 @@ class multiLevelTries(object):
                     
                     #traverse the tries store in the node
                     if not current.value.localTries.isEmpty() and (ignoreStopTraversal or not current.value.stopTraversal):
-                        level, current = self.exploreNextTries(level, currentPath, current)
+                        level, current = self._exploreNextTries(level, currentPath, current)
                         continue
             else:
                 #remove the reference about the traversal
@@ -290,7 +290,7 @@ class multiLevelTries(object):
                     if "MTParent" in current.value.localTries.__dict__.keys():
                         del current.value.localTries.MTParent
                     else:
-                        level, current = self.exploreNextTries(level, currentPath, current)
+                        level, current = self._exploreNextTries(level, currentPath, current)
                         continue
                         
                 traversalState = executeOnNode(currentPath, current.value, traversalState, level)
@@ -369,7 +369,7 @@ class multiLevelTries(object):
     # return a dictionnary of every key/value in the tree
     #
     #
-    def buildDictionnary(self, stringList = [], ignoreStopTraversal=False, addPrexix= False):
+    def buildDictionnary(self, stringList = (), ignoreStopTraversal=False, addPrexix= False):
         #find the starting node if needed
         startingPoint = self
         prefix = []
