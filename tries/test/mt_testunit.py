@@ -3,7 +3,7 @@
 
 import unittest
 from multiLevelTries import multiLevelTries
-from exception import pathExistsTriesException, triesException
+from exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
 def buildList(minSize, maxSize, charset):
     ret = []
@@ -57,7 +57,7 @@ class TraversalTest(unittest.TestCase):
         self.mlt           = multiLevelTries()
         self.mltlist       = buildList(1,3,["a","b"])
         self.numberOfLevel = 3
-        toInsert           = buildMultiList(1,buildList(1,3,["a","b"]),buildList(1,3,["a","b"]))
+        toInsert           = buildMultiList(1,self.numberOfLevel,self.mltlist)
         self.keyValue      = {}
         
         for v in toInsert:
@@ -135,7 +135,7 @@ class TraversalTest(unittest.TestCase):
         self.assertTrue( self.mlt.genericDepthFirstTraversal(self._inner_test_traversal,({},{},0,), False)[2] == len(self.keyValue.keys()))
         
     def test_BreadthFirstTraversal(self):
-        self.assertTrue( genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.keyValue.keys()))
+        self.assertTrue( self.mlt.genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.keyValue.keys()))
 
     def test_preOrderTraversalWithStopTraversalLayer1(self):
         #update stopTraversal on node
@@ -162,7 +162,7 @@ class TraversalTest(unittest.TestCase):
         for key in self.mltlist:
             self.mlt.setStopTraversal((key,),True)  
         
-        self.assertTrue( genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.mltlist))
+        self.assertTrue( self.mlt.genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.mltlist))
 ###
     def test_preOrderTraversalWithStopTraversalLayer2(self):
         #update stopTraversal on node
@@ -192,7 +192,7 @@ class TraversalTest(unittest.TestCase):
             for key2 in self.mltlist:
                 self.mlt.setStopTraversal((key1,key2,),True)  
         
-        self.assertTrue( genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.mltlist)**2)
+        self.assertTrue( self.mlt.genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.mltlist)**2)
 
     ###
 
@@ -284,7 +284,7 @@ class TraversalTest(unittest.TestCase):
         self.test_everyValueCorrespondToAKey()
 
 
-    def test_removeIntermediateNodeWithValueLevel1():
+    def test_removeIntermediateNodeWithValueLevel1(self):
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )
 
@@ -292,7 +292,7 @@ class TraversalTest(unittest.TestCase):
         self.test_everyValueCorrespondToAKey()
 
     
-    def test_removeIntermediateNodeWithValueLevel2():
+    def test_removeIntermediateNodeWithValueLevel2(self):
         for key1 in self.mltlist:
             for key2 in self.mltlist:
                 self.mlt.remove( (key1,key2) )
@@ -300,7 +300,7 @@ class TraversalTest(unittest.TestCase):
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
     
-    def test_removeIntermediateNodeWithValueLevel1and2():
+    def test_removeIntermediateNodeWithValueLevel1and2(self):
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )
             for key2 in self.mltlist:
@@ -309,13 +309,13 @@ class TraversalTest(unittest.TestCase):
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
         
-    def test_removeEndValue():
+    def test_removeEndValue(self):
         for key1 in self.mltlist:
             for key2 in self.mltlist:
                 for key3 in self.mltlist:
                     self.mlt.remove( (key1,key2,key3,) )
         
-    def test_removeIntermediateNodeWithoutValue():
+    def test_removeIntermediateNodeWithoutValue(self):
         #remove every intermediate node
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )

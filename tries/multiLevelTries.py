@@ -325,12 +325,12 @@ class multiLevelTries(object):
         #init the Queue with every key value of the first level tries
         keyValue = self.localTries.getKeyValue()
         for k,v in keyValue.iteritems():
-            Queue.append(v, 0, [k])
+            Queue.append( (v, 0, [k],))
         
         #read the queue
         while len(Queue) > 0:
             #dequeu current node
-            current, level, currentPath = Queue.popleft()
+            current, level, currentPath = Queue.pop(0)
             
             #add every child in the Queue
             if not current.localTries.isEmpty() and (ignoreStopTraversal or not current.stopTraversal):
@@ -339,7 +339,7 @@ class multiLevelTries(object):
                 for k,v in keyValue.iteritems():
                     newPath = currentPath[:]
                     newPath.append(k)
-                    Queue.append(v, level+1, newPath)       
+                    Queue.append( (v, level+1, newPath,))       
             
             #read value node with value
             traversalState = executeOnNode(currentPath, current.value, traversalState, level)
