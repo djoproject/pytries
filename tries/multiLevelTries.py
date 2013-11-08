@@ -249,6 +249,7 @@ class multiLevelTries(object):
         level          = 0
          
         while current != None:
+            #print currentPath, current
         ### traverse the node AND pre order process ###
             if "traversed" not in current.__dict__.keys(): #execute this statement only once
                 currentPath[level] += current.key #update the current part of the key path
@@ -271,7 +272,8 @@ class multiLevelTries(object):
         ### child process ###
             #explore only if there is more than one child AND no post order traversal in progress
                 #because if there is a postorder traversal, the childs have been already explored
-            if len(current.childs) > 0 and (not preOrder and current.isValueSet() and "MTParent" in current.value.localTries.__dict__.keys()): #is there some child to explore ?
+
+            if len(current.childs) > 0 and (preOrder or (not current.isValueSet() or "MTParent" not in current.value.localTries.__dict__.keys())  ): #is there some child to explore ?
                 #does the exploration already start ?
                 if "traversal_index" not in current.__dict__.keys():
                     current.traversal_index = 0
@@ -349,7 +351,6 @@ class multiLevelTries(object):
         return traversalState
 
     def _inner_buildDictionnary(self, path, node, state, level):
-        print "inner"
         if not node.isValueSet():
             return state
     
@@ -357,6 +358,7 @@ class multiLevelTries(object):
         return state
     
     def _inner_buildDictionnaryWithPath(self, path, node, state, level):
+        path
         if not node.isValueSet():
             return state
         
@@ -392,7 +394,7 @@ class multiLevelTries(object):
                     prefix.append(triesNode.getCompleteName())
         
             if len(prefix) > 0:
-                return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnaryWithPath, (prefix,{}), True, ignoreStopTraversal)
+                return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnaryWithPath, (prefix,{}), True, ignoreStopTraversal)[1]
         
         #start the search
         return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)

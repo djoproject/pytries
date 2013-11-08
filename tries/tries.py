@@ -124,6 +124,10 @@ class tries():
                         #the root become the sibling
                         parent.key      = parent.key + sibbling.key 
                         parent.childs   = sibbling.childs
+                        #update childs
+                        for c in sibbling.childs:
+                            c.parent = parent
+                        
                         parent.value    = sibbling.value
                         parent.valueSet = sibbling.valueSet
                     else:
@@ -151,6 +155,9 @@ class tries():
             #merge node
             Node.setValue(child.value)
             Node.childs = child.childs
+            #update childs
+            for c in child.childs:
+                c.parent = Node
             
             #del the child
             child.unsetValue()
