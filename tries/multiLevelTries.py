@@ -56,8 +56,10 @@ class multiLevelTries(object):
     # @return the number of matching token, 
     #
     def searchNode(self, stringList, onlyPerfectMatch=True):
+        #print "searchNode <"+str(stringList)+">"
         #check string list
         if stringList == None or not hasattr(stringList, '__iter__') or len(stringList) < 0:
+            
             raise triesException("(multiLevelTries) searchNode, need string token to search a value, no token found")
         
         #SEARCH a similar String list
@@ -142,6 +144,7 @@ class multiLevelTries(object):
     #
     #
     def remove(self, stringList):
+        #print "remove, <"+str(stringList)+">"
         #search for a similar existing stringList in the tree (we want a perfect match)
         existingPath, existing, existingValue = self.searchNode(stringList, True)
         
@@ -162,7 +165,7 @@ class multiLevelTries(object):
                 break
             
             #remove the value stored
-            existingPath[index][1].remove(existingPath[index][0])
+            existingPath[index][1].localTries.remove(existingPath[index][0])
     
     
 
@@ -342,8 +345,8 @@ class multiLevelTries(object):
                     Queue.append( (v, level+1, newPath,))       
             
             #read value node with value
-            traversalState = executeOnNode(currentPath, current.value, traversalState, level)
-    
+            traversalState = executeOnNode(currentPath, current, traversalState, level)
+        return traversalState
 
     def _inner_buildDictionnary(self, path, node, state, level):
         print "inner"

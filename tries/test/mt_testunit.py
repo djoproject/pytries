@@ -204,7 +204,7 @@ class TraversalTest(unittest.TestCase):
         self.assertTrue( len(dico) == len(self.keyValue))
         
         for k,v in dico.iteritems():
-            print k,v
+            #print k,v
             self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
 
     def test_buildDictWithPrefix(self):
@@ -216,7 +216,7 @@ class TraversalTest(unittest.TestCase):
             self.assertTrue( len(dico) == expectedValueCount)
             
             for k,v in dico.iteritems():
-                print k,v
+                #print k,v
                 self.assertTrue(len(k) > 0 and k[0] == key)
                 self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
         
@@ -227,7 +227,7 @@ class TraversalTest(unittest.TestCase):
                 self.assertTrue( len(dico) == expectedValueCount)
                 
                 for k,v in dico.iteritems():
-                    print k,v
+                    #print k,v
                     self.assertTrue(len(k) > 1 and k[0] == key1 and k[1] == key2)
                     self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
                     
@@ -240,7 +240,7 @@ class TraversalTest(unittest.TestCase):
             self.assertTrue( len(dico) == expectedValueCount)
             
             for k,v in dico.iteritems():
-                print k,v
+                #print k,v
                 #self.assertTrue(len(k) > 0 and k[0] == key)
                 keys = [key]
                 keys.extends(k)
@@ -253,7 +253,7 @@ class TraversalTest(unittest.TestCase):
                 self.assertTrue( len(dico) == expectedValueCount)
                 
                 for k,v in dico.iteritems():
-                    print k,v
+                    #print k,v
                     keys = [key1, key2]
                     keys.extends(k)
                     #self.assertTrue(len(k) > 1 and k[0] == key1 and k[1] == key2)
@@ -278,8 +278,10 @@ class TraversalTest(unittest.TestCase):
         #remove all
     def test_removeAll(self):
         for k,v in self.keyValue.iteritems():
+            print "test_removeAll <"+str(k)+">"
             self.mlt.remove(k)
             
+        self.keyValue = {}
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
 
@@ -287,7 +289,8 @@ class TraversalTest(unittest.TestCase):
     def test_removeIntermediateNodeWithValueLevel1(self):
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )
-
+            del self.keyValue[(key1,)]
+            
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
 
@@ -295,16 +298,19 @@ class TraversalTest(unittest.TestCase):
     def test_removeIntermediateNodeWithValueLevel2(self):
         for key1 in self.mltlist:
             for key2 in self.mltlist:
-                self.mlt.remove( (key1,key2) )
-
+                self.mlt.remove( (key1,key2,) )
+                del self.keyValue[(key1,key2,)]
+                
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
     
     def test_removeIntermediateNodeWithValueLevel1and2(self):
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )
+            del self.keyValue[(key1,)]
             for key2 in self.mltlist:
-                self.mlt.remove( (key1,key2) )
+                self.mlt.remove( (key1,key2,) )
+                del self.keyValue[(key1,key2,)]
 
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
@@ -313,14 +319,20 @@ class TraversalTest(unittest.TestCase):
         for key1 in self.mltlist:
             for key2 in self.mltlist:
                 for key3 in self.mltlist:
+                    print "test_removeEndValue <"+str((key1,key2,key3,))+">"
                     self.mlt.remove( (key1,key2,key3,) )
+                    del self.keyValue[(key1,key2,key3,)]
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
         
     def test_removeIntermediateNodeWithoutValue(self):
         #remove every intermediate node
         for key1 in self.mltlist:
             self.mlt.remove( (key1,) )
+            del self.keyValue[(key1,)]
             for key2 in self.mltlist:
                 self.mlt.remove( (key1,key2) )
+                del self.keyValue[(key1,key2,)]
         
         #try to remove them again
         for key1 in self.mltlist:
