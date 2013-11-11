@@ -19,25 +19,31 @@
 #TODO
     #-test genericBreadthFirstTraversal
     #-specialize the exception (e.g. pathExistsTriesException, pathNotExistsTriesException)
+    #-anySuffix follow the path? when insertion or remove ?? 
 
 from exception import triesException
 from utils import noneFunc, charInCommons, returnNode
 
 class tries():
+    """
+    TODO description
     
-    #
-    # constructor of the class tries
-    #
-    # @parameter self, the reference of the class object
-    # @parameter key, the part of the key string stored in the current node
-    # @parameter parent, the parent node in the tree
-    # @parameter value, the value stored in the key
-    #
+    @contact: pytries@djoproject.net
+    """
+    
     def __init__(self, key = "", parent = None, anySuffix = False):
-        "init the node with a key, and maybe a parent and a value"
-        #print "{"+key+"}"
-        #if key == None or type(key) != str or len(key) == 0:
-        # raise triesException("the inserted key must be a string with a length bigger than zero")
+        """
+        init a tries node with a key, and maybe a parent
+        
+        @type key: string
+        @param key: the part of the key string stored in the current node
+        @type parent: tries
+        @param parent: the parent node in the tree
+        @type anySuffix: boolean
+        @param anySuffix: enable the anysuffix management on this node
+        @rtype: tries
+        @return: a new instance of tries
+        """
         
         self.key       = key
         self.childs    = []
@@ -48,52 +54,86 @@ class tries():
     
     
     def setValue(self, value):
+        """
+        this method allow to set the value stored on this node
+
+        @type value: anything even None
+        @param value: the value to store on this node 
+        """
+        
         self.value = value
         self.valueSet = True
     
     
     def unsetValue(self):
+        """
+        this method allow to unset the value stored on this node
+        """
+        
         self.value = None
         self.valueSet = False
     
     
     def isValueSet(self):
+        """
+        this method allow to check if a value is set on this node
+
+        @rtype: boolean
+        @return: True if there is a value stored on this node, False otherwise
+        """
+        
         return self.valueSet
     
     
     def getValue(self):
+        """
+        this method allow to get the value stored on this node
+
+        @rtype: anything even None
+        @return: the value stored on this
+        @raise triesException: if there is no value stored on this node
+        """
+        
         if not self.valueSet:
             raise triesException("this node does not contain any value")
             
         return self.value
     
     
-    #
-    # this methode identify if the current node is an end node or not
-    #
-    # @return True if the current node is an end node, return False otherwise
-    #
     def isFinalNode(self):
+        """
+        this methode identify if the current node is an end node or not
+
+        @rtype: boolean
+        @return: True if the current node is an end node, return False otherwise
+        """
+        
         return len(self.child) == 0
     
     
-    #
-    #
-    #
     def isEmpty(self):
+        """
+        this methode identifies if the current tries is an empty tree or not
+        an empty tree does not store any sub tree
+
+        @rtype: boolean
+        @return: True if the current tree does not store any child, False otherwise
+        """
+        
         return len(self.childs) == 0 and self.value == None
     
     
 ########### MAJOR FUNCTION (remove/update/insert) #######################################################################################################################################################
     
-    #
-    # method to remove a key string and its value from the tree
-    # 
-    # @param key, the key of the node to remove
-    # @exception triesException if no node exists with the specified key
-    #
     def remove(self, key):
-        "remove a node with a specific key in the tree"
+        """
+        this method removes a key string and its value from the tree
+
+        @type key: string
+        @param key: the key of the path to remove
+        @exception triesException: if no node exists with the specified key
+        """
+
         #search the specific node
         Node = self.searchNode(key,returnNode)
         
@@ -170,14 +210,18 @@ class tries():
             Node.unsetValue()                
     
     
-    #
-    # update the value of the node corresponding to the key
-    #
-    # @param key, the key of the final node to update
-    # @param newValue, the value to change in the node corresponding of the key
-    # @return the updated node
-    #
     def update(self, key, newValue):
+        """
+        this method updates the value of the node corresponding to the key
+        
+        @type key: string
+        @param key: the key of the path to update
+        @type newValue: anything even None
+        @param newValue: the value to change in the node corresponding of the key path
+        @rtype: tries
+        @return: the updated node
+        @raise triesException: if no node exists with the specified key
+        """
         Node = self.searchNode(key,returnNode)
         if Node != None and Node.isValueSet():
             Node.value = newValue
@@ -186,13 +230,20 @@ class tries():
         raise triesException("key not found")
     
     
-    #
-    # insert a new couple key/value in the tree
-    #
-    # @return the inserted node
-    # @exception triesException if insertion failed
-    #
     def insert(self,key, value, anySuffix = False):
+        """
+        this method inserts a new couple key/value in the tree
+        
+        @type key: string
+        @param key: the key of the path to insert
+        @type value: anything even None
+        @param value: the value to store on this path
+        @type anySuffix: boolean
+        @param anySuffix: enable the anysuffix management on this path
+        @rtype: tries
+        @return: the inserted node
+        @raise triesException: if the path has already been inserted into the tree
+        """
         #CASE 1 : perfect match
         def exact(Node,key):
             #if the current node is a value node, can't insert the new value
@@ -288,6 +339,27 @@ class tries():
     # @exception triesException if the prefix is not a string type
     #
     def searchNode(self,prefix,exactResult,partialResult = noneFunc, noMatchChild = noneFunc, falseResult = noneFunc, anySuffixAllowed = False):
+        """ TODO
+        generic search method, this method allow to retrieve any kind of result from the tree with the parameter methods
+        
+        @type prefix: string
+        @param prefix:
+        @type exactResult: function(currentNode,prefix)
+        @param exactResult: this function is called when a node corresponding to the perfect match and the complete path is find in the tree
+        @type partialResult: function(currentNode,prefix,count,totalCount)
+        @param partialResult: this function is called when a node corresponding to the partial match, the prefix path to find, the count of common caracter with the current node, and the total count of common caracters
+        @type noMatchChild: function(currentNode,prefix,totalCount)
+        @param noMatchChild: , the last explored node, the prefix to find in the tree, and the total count of common caracters
+        @type falseResult: function(currentNode,prefix,count,totalCount)
+        @param falseResult: , same as partialResult
+        @type anySuffixAllowed:
+        @param anySuffixAllowed: allow to disable the special stuff any suffix to make a strict search on the tree
+        @rtype
+        @return
+        @raise triesException if the prefix is not a string type
+        
+        """
+        
         #must be a valid string
         if prefix == None or type(prefix) != str:# or len(prefix) == 0:
             raise triesException("the searched key must be a string")# with a length bigger than zero")
@@ -333,28 +405,32 @@ class tries():
                 return falseResult(currentNode,prefix,count,totalCount) # bee != bear
     
     
-    #
-    # This search looks for a perfect key match and return a value node or an non value node
-    #
-    # @parameter key, the string path to find
-    # @return a perfect match value Node or None
-    # @exception triesException if the prefix is not a string type
-    #
     def search(self,key):
+        """
+        This search looks for a perfect key match and return a value node or an non value node
+        
+        @type key: string
+        @param key: the string path to find
+        @rtype: Tries or None
+        @return: a perfect match value Node or None
+        @raise triesException if the prefix is not a string type
+        """
         Node = self.searchNode(key,returnNode)
         if Node != None and Node.isValueSet():
             return Node
         return None
     
 
-    #
-    # this function looks for a complete path corresponding to the prefix string given
-    #
-    # @parameter prefix, the prefix to search in the tree
-    # @return a value node
-    # @exception triesException if the prefix is not a string or if the string does not correspond to a complete path
-    #
     def searchUniqueFromPrefix(self,prefix):
+        """
+        this function looks for a complete path corresponding to the prefix string given
+        
+        @type prefix: string
+        @param prefix: the prefix to search in the tree
+        @rtype: tries
+        @return: a value node
+        @raise triesException if the prefix is not a string or if the string does not correspond to a complete path
+        """
         Node = self.searchNode(prefix,returnNode,returnNode)
         if Node != None:
             if Node.isValueSet():
@@ -367,21 +443,36 @@ class tries():
         return None
     
     
-    #
-    #
-    #
     def advancedSearch(self, prefix):
+        """
+        This function build an advanced result
+        
+        @type prefix: string
+        @param prefix: the prefix of the key to search in the tree
+        @rtype: triesSearchResult
+        @return: an advanced result object, see its documentation to get more details
+        """
         result = triesSearchResult()
         return self.searchNode(prefix, result._perfect, result._partial, result._noChild, result._false)
     
     
 ############ TRAVERSAL FUNCTION #####################################################################################################################################################################
-    #
-    # start a traversal over all the node of the tree starting from the current node included
-    #
-    # WARNING, this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
-    #
+    
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True):
+        """
+        This function executes a depth first traversal on the tries.  
+        
+        @type executeOnNode: function(currentPath, current, traversalState, level)
+        @param executeOnNode: the function that will be call on every (included no value node) tries node
+        @type initState: anything
+        @param initState: this is the initial value of the traversal state
+        @type preOrder: boolean
+        @param preOrder: True means preorder, False means postorder
+        @rtype: anything
+        @return: the last state
+        @attention: this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
+        """
+        
         current        = self
         currentPath    = ""
         traversalState = initState
@@ -428,10 +519,18 @@ class tries():
         return traversalState
     
     
-    #
-    # http://en.wikipedia.org/wiki/Breadth-first_search
-    #
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None):
+        """
+        This function executes a breadth first traversal on the tries.  
+        
+        @type executeOnNode: function(currentPath, current, traversalState, level)
+        @param executeOnNode: the function that will be call on every (included no value node) tries node
+        @type initState: anything
+        @param initState: this is the initial value of the traversal state
+        @rtype: anything
+        @return: the last state
+        @see: http://en.wikipedia.org/wiki/Breadth-first_search
+        """
         level          = 0
         Queue          = [(self,level,self.key)]
         traversalState = initState
@@ -449,12 +548,8 @@ class tries():
             traversalState = executeOnNode(currentPath, current, traversalState, level)
     
     
-    
 ############ MISC FUNCTION #########################################################################################################################################################################
     
-    #
-    #
-    #
     def _listEveryCompletePath(self, path, node, state, level):
         if node.isValueSet():
             state.append(path)
@@ -462,50 +557,50 @@ class tries():
         return state
     
     
-    #
-    #
-    #
-    def getKeyList(self):
-        return self.genericDepthFirstTraversal(self._listEveryCompletePath, [])
-    
-    
-    #
-    # @return a dictionnary with all the key or an empty list if no result
-    #
-    def getKeyListFromPrefix(self,prefix):
-        starting_point = self.searchNode(prefix,returnNode,returnNode)
+    def getKeyList(self, prefix=""):
+        """
+        This method build a list with every key stored in this tries
         
-        #if invalid result (noMatchChild or falseResult), there is no bigger path
-        if starting_point == None:
-            return []
+        @type prefix: string or None
+        @param prefix: the prefix of the key needed, default is an empty string
+        @rtype: list
+        @return: a list with every existing key pair in this tries
+        """
+        
+        starting_point = self
+        if prefix != "":
+            starting_point = self.searchNode(prefix,returnNode,returnNode)
+
+            #if invalid result (noMatchChild or falseResult), there is no bigger path
+            if starting_point == None:
+                return []
         
         return starting_point.genericDepthFirstTraversal(self._listEveryCompletePath, [])
     
-    #
-    #
-    #
+    
     def _listEveryCompletePathAndValue(self, path, node, state, level):
         if node.isValueSet():
             state[path] = node.value
         
         return state
     
-    #
-    #
-    #
-    def getKeyValue(self):
-        return self.genericDepthFirstTraversal(self._listEveryCompletePathAndValue, {})
     
-    
-    #
-    #
-    #    
-    def getKeyValueFromPrefix(self, prefix):
-        starting_point = self.searchNode(prefix,returnNode,returnNode)
+    def getKeyValue(self, prefix=""):
+        """
+        This method build a dictionary with every key/value pair stored in this tries
         
-        #if invalid result (noMatchChild or falseResult), there is no bigger path
-        if starting_point == None:
-            return []
+        @type prefix: string or None
+        @param prefix: the prefix of the key needed, default is an empty string
+        @rtype: dictionary
+        @return: a dictionary with every existing key/value pair in this tries
+        """
+        starting_point = self
+        if prefix != "":
+            starting_point = self.searchNode(prefix,returnNode,returnNode)
+            
+            #if invalid result (noMatchChild or falseResult), there is no bigger path
+            if starting_point == None:
+                return {}
         
         return starting_point.genericDepthFirstTraversal(self._listEveryCompletePathAndValue, {})
     
@@ -518,11 +613,13 @@ class tries():
         return state
     
     
-    #
-    # this methode compute the bigger number of child of all the current node childs
-    # @return an integer bigger or equal to zero
-    #
     def getMaxChildCount(self):
+        """
+        this methode compute the bigger number of child of all the current node childs
+        
+        @rtype: integer
+        @return: the bigger number of child existing for every node in the tries
+        """
         return self.genericDepthFirstTraversal(self._getMaxChildCount, 0)
     
     
@@ -544,10 +641,13 @@ class tries():
         return state
     
     
-    #
-    #
-    #
     def traversal(self,level = 0):
+        """
+        This method allows to print a text representation of current tries structure
+        
+        @type level: integer
+        @param level: the limit of level to print, 0 means no limit
+        """
         return self.genericDepthFirstTraversal(self._traversal, "")
     
     
@@ -559,20 +659,25 @@ class tries():
         return state
     
     
-    #
-    # 
-    #
     def countValue(self):
+        """
+        This method computes the number of value stored below this node.  If a value is stored on the current node, the value is counted.
+        
+        @rtype: integer
+        @return: the number of value store below and in this node
+        """
         return self.genericDepthFirstTraversal(self._countValue, 0)
     
 
     
 #################
     
-    #
-    #
-    #
     def getCompleteName(self):
+        """
+        This method build the complete path of the current node.  Every parent node will be traversed to get their part of the path
+        @rtype: string
+        @return: the complete path of the current node
+        """
         node = self
         s = ""
 
@@ -585,10 +690,12 @@ class tries():
     
 ############ __ FUNCTION __ #########################################################################################################################################################################
     
-    #
-    #
-    #
+    
     def __repr__(self):
+        """
+        This method return a representation of the current tries node
+        """
+        
         if self.value == None:
             if self.parent == None:
                 return "none node (key = \""+self.key+"\", completeName = "+self.getCompleteName()+", parent = None, child count = "+str(len(self.childs))+", valueSet = "+str(self.valueSet)+")"
