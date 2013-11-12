@@ -20,3 +20,6 @@ from tries import tries
 
 class suffixTries(tries):
     pass #TODO
+#TODO
+    #inverser la concatenation de chaine
+    #pour la recherche, ça doit se faire sur la fin de la string, et plus sur le debut

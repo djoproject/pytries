@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*- 
 
-#Copyright (C) 2012 Jonathan Delvaux <jonathan.delvaux@uclouvain.be>
+#Copyright (C) 2012 Jonathan Delvaux <pytries@djoproject.net>
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -16,19 +16,18 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-#TODO
-    #-test genericBreadthFirstTraversal
-    #-specialize the exception (e.g. pathExistsTriesException, pathNotExistsTriesException)
-    #-anySuffix follow the path? when insertion or remove ?? 
 
-from exception import triesException
+from exception import triesException, noValueSetTriesException, pathExistsTriesException, pathNotExistsTriesException
 from utils import noneFunc, charInCommons, returnNode
 
 class tries():
     """
-    TODO description
+    This class provide a complete implementation of the tries stucture
     
     @contact: pytries@djoproject.net
+    @version: 1.0
+    @licence: GPL v3
+    @see: http://en.wikipedia.org/wiki/Trie
     """
     
     def __init__(self, key = "", parent = None, anySuffix = False):
@@ -91,11 +90,11 @@ class tries():
 
         @rtype: anything even None
         @return: the value stored on this
-        @raise triesException: if there is no value stored on this node
+        @raise noValueSetTriesException: if there is no value stored on this node
         """
         
         if not self.valueSet:
-            raise triesException("this node does not contain any value")
+            raise noValueSetTriesException("this node does not contain any value")
             
         return self.value
     
@@ -125,13 +124,26 @@ class tries():
     
 ########### MAJOR FUNCTION (remove/update/insert) #######################################################################################################################################################
     
+    
+    def _transferNodeContent(self,otherTries):
+        self.key += otherTries.key
+        
+        self.childs = otherTries
+        for c in otherTries.childs:
+            c.parent = self
+        
+        self.anySuffix  = otherTries.anySuffix
+        self.value    = otherTries.value
+        self.valueSet = otherTries.valueSet
+    
+    
     def remove(self, key):
         """
         this method removes a key string and its value from the tree
 
         @type key: string
         @param key: the key of the path to remove
-        @exception triesException: if no node exists with the specified key
+        @exception pathNotExistsTriesException: if no node exists with the specified key
         """
 
         #search the specific node
@@ -139,7 +151,7 @@ class tries():
         
         #the node must exist and be a value node
         if Node == None or not Node.isValueSet():
-		    raise triesException("key not found")
+		    raise pathNotExistsTriesException("key not found")
         
         ### Case 1 : No Child ###
         if len(Node.childs) == 0:
@@ -161,15 +173,18 @@ class tries():
                     
                     #the parent is the root ?
                     if parent.parent == None:
-                        #the root become the sibling
-                        parent.key      = parent.key + sibbling.key 
+                        """parent.key      = parent.key + sibbling.key 
                         parent.childs   = sibbling.childs
                         #update childs
                         for c in sibbling.childs:
                             c.parent = parent
                         
                         parent.value    = sibbling.value
-                        parent.valueSet = sibbling.valueSet
+                        parent.valueSet = sibbling.valueSet"""
+                        
+                        #the root become the sibling
+                        parent.transferNodeContent(sibbling)
+                        
                     else:
                         #merge the intermediate node with the sibling node
                         sibbling.key = parent.key + sibbling.key
@@ -188,7 +203,7 @@ class tries():
             #the current node become its child and its child disappear
             #there is no different process to do if the node is root
         elif len(Node.childs) == 1:
-            #concat key
+            """#concat key
             child = Node.childs[0]
             Node.key    = Node.key + child.key
             
@@ -197,11 +212,14 @@ class tries():
             Node.childs = child.childs
             #update childs
             for c in child.childs:
-                c.parent = Node
+                c.parent = Node"""
             
-            #del the child
+            #merge node
+            Node.transferNodeContent(Node.childs[0])
+            
+            """#del the child
             child.unsetValue()
-            del child
+            del child"""
             
         ### Case 3 : More than one Child ###
             #if there is several child, the current node is the biggest common prefix of these nodes
@@ -220,14 +238,15 @@ class tries():
         @param newValue: the value to change in the node corresponding of the key path
         @rtype: tries
         @return: the updated node
-        @raise triesException: if no node exists with the specified key
+        @raise pathNotExistsTriesException: if no node exists with the specified key
         """
+        
         Node = self.searchNode(key,returnNode)
         if Node != None and Node.isValueSet():
             Node.value = newValue
             return Node
             
-        raise triesException("key not found")
+        raise pathNotExistsTriesException("key not found")
     
     
     def insert(self,key, value, anySuffix = False):
@@ -242,13 +261,14 @@ class tries():
         @param anySuffix: enable the anysuffix management on this path
         @rtype: tries
         @return: the inserted node
-        @raise triesException: if the path has already been inserted into the tree
+        @raise pathExistsTriesException: if the path has already been inserted into the tree
         """
+        
         #CASE 1 : perfect match
         def exact(Node,key):
             #if the current node is a value node, can't insert the new value
             if Node.isValueSet(): #is it a value node?
-                raise triesException("the inserted key already exists")
+                raise pathExistsTriesException("the inserted key already exists")
             
             return Node
         
@@ -326,38 +346,26 @@ class tries():
     
 ############ SEARCH FUNCTION #########################################################################################################################################################################
     
-    #
-    # generic search method, this method allow to retrieve any kind of result from the tree with the parameter methods
-    # 
-    # @parameter prefix
-    # @parameter exactResult(currentNode,prefix), the node corresponding to the perfect match and the complete path to find in the tree
-    # @parameter partialResult(currentNode,prefix,count,totalCount), the node corresponding to the partial match, the prefix path to find, the count of common caracter with the current node, and the total count of common caracters
-    # @parameter noMatchChild(currentNode,prefix,totalCount), the last explored node, the prefix to find in the tree, and the total count of common caracters
-    # @parameter falseResult(currentNode,prefix,count,totalCount), same as partialResult
-    # @parameter anySuffixAllowed, allow to disable the special stuff any suffix to make a strict search on the tree
-    # @return
-    # @exception triesException if the prefix is not a string type
-    #
+    
     def searchNode(self,prefix,exactResult,partialResult = noneFunc, noMatchChild = noneFunc, falseResult = noneFunc, anySuffixAllowed = False):
-        """ TODO
+        """
         generic search method, this method allow to retrieve any kind of result from the tree with the parameter methods
         
         @type prefix: string
-        @param prefix:
+        @param prefix: the prefix path to find in the tree
         @type exactResult: function(currentNode,prefix)
-        @param exactResult: this function is called when a node corresponding to the perfect match and the complete path is find in the tree
+        @param exactResult: this function is called when a perfect path match exists in the tree
         @type partialResult: function(currentNode,prefix,count,totalCount)
-        @param partialResult: this function is called when a node corresponding to the partial match, the prefix path to find, the count of common caracter with the current node, and the total count of common caracters
+        @param partialResult: this function is called when a partial node is found in the tree.  So there is no other sibling node with the same prefix
         @type noMatchChild: function(currentNode,prefix,totalCount)
-        @param noMatchChild: , the last explored node, the prefix to find in the tree, and the total count of common caracters
+        @param noMatchChild: this function is called when there is no corresping child in a node of the path to finish the search
         @type falseResult: function(currentNode,prefix,count,totalCount)
-        @param falseResult: , same as partialResult
-        @type anySuffixAllowed:
+        @param falseResult: this function is called when there is an existing node with a similar prefix but with a different suffix
+        @type anySuffixAllowed: boolean
         @param anySuffixAllowed: allow to disable the special stuff any suffix to make a strict search on the tree
-        @rtype
-        @return
+        @rtype: anything
+        @return: the returned result is the result of one of the four called method
         @raise triesException if the prefix is not a string type
-        
         """
         
         #must be a valid string
@@ -415,6 +423,7 @@ class tries():
         @return: a perfect match value Node or None
         @raise triesException if the prefix is not a string type
         """
+        
         Node = self.searchNode(key,returnNode)
         if Node != None and Node.isValueSet():
             return Node
@@ -431,6 +440,7 @@ class tries():
         @return: a value node
         @raise triesException if the prefix is not a string or if the string does not correspond to a complete path
         """
+        
         Node = self.searchNode(prefix,returnNode,returnNode)
         if Node != None:
             if Node.isValueSet():
@@ -452,6 +462,7 @@ class tries():
         @rtype: triesSearchResult
         @return: an advanced result object, see its documentation to get more details
         """
+        
         result = triesSearchResult()
         return self.searchNode(prefix, result._perfect, result._partial, result._noChild, result._false)
     
@@ -531,6 +542,7 @@ class tries():
         @return: the last state
         @see: http://en.wikipedia.org/wiki/Breadth-first_search
         """
+        
         level          = 0
         Queue          = [(self,level,self.key)]
         traversalState = initState
@@ -620,6 +632,7 @@ class tries():
         @rtype: integer
         @return: the bigger number of child existing for every node in the tries
         """
+        
         return self.genericDepthFirstTraversal(self._getMaxChildCount, 0)
     
     
@@ -648,6 +661,7 @@ class tries():
         @type level: integer
         @param level: the limit of level to print, 0 means no limit
         """
+        
         return self.genericDepthFirstTraversal(self._traversal, "")
     
     
@@ -666,6 +680,7 @@ class tries():
         @rtype: integer
         @return: the number of value store below and in this node
         """
+        
         return self.genericDepthFirstTraversal(self._countValue, 0)
     
 
@@ -678,6 +693,7 @@ class tries():
         @rtype: string
         @return: the complete path of the current node
         """
+        
         node = self
         s = ""
 
@@ -709,7 +725,19 @@ class tries():
     
 
 class triesSearchResult(object):
+    """
+    This provide an advanced result object
+    
+    @contact: pytries@djoproject.net
+    @version: 1.0
+    @licence: GPL v3
+    """
+
     def __init__(self):
+        """
+        this method init a triesSearchResult object
+        """
+        
         self.resultNode   = None #perfect or partial match
         self.previousNode = None #noMatchNode, falseNode, partial
     
@@ -739,24 +767,72 @@ class triesSearchResult(object):
     ########
     
     def isPerfectMatch(self):
+        """
+        This method return True if the searched result is a perfect match, False otherwise
+        
+        @rtype: boolean
+        @return: True if there is a perfect match, False otherwise
+        """
+        
         return self.perfectMatch
     
     def isPartialMatch(self):
+        """
+        This method return True if the searched result is a partial match, False otherwise
+        
+        @rtype: boolean
+        @return: True if there is a partial match, False otherwise
+        """
         return self.partialMatch
     
     def isMatch(self):
+        """
+        This method return True if the searched result is a match (perfect or partial), False otherwise
+        
+        @rtype: boolean
+        @return: True if there is a partial or pefect match, False otherwise
+        """
+        
         return self.perfectMatch or self.partialMatch
     
-    def isNoMatchNode(self):
-        return self.noMatchNode
+    def isNoMatchChild(self):
+        """
+        This method return True if the searched result is a no match child, False otherwise
+        
+        @rtype: boolean
+        @return: True if the searched result is a no match child, False otherwise
+        """
+        
+        return self.noMatchChild
         
     def isFalseResult(self):
+        """
+        This method return True if the searched result is a false result, False otherwise
+        
+        @rtype: boolean
+        @return: True if the searched result is a false result, False otherwise
+        """
+        
         return self.falseResult
     
     def getNode(self):
+        """
+        This method return the found node if there is one, None otherwise
+        
+        @rtype: tries or None
+        @return: the node found if there is a found node
+        """
+        
         return self.resultNode
         
     def getPreviousNode(self):
+        """
+        This method return the last explored node in the search process if there is no match, otherwise it returns the parent node of the found node.  In the worst case, the returned value is the root node
+        
+        @rtype: tries
+        @return: the last node explored or the node just before the found node
+        """
+        
         return self.previousNode
     
 

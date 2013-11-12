@@ -24,12 +24,15 @@
         #interet ?
     
 from tries import *
-from exception import triesException,pathExistsTriesException, pathNotExistsTriesException
+from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException
 
 class multiLevelTries(object):
     
     def __init__(self):#, parentMLTries = None):
-        "this method init the multiLevelTries with an empty tries root"
+        """
+        this method init the multiLevelTries with an empty tries root
+        """
+        
         self.localTries = tries() #levelOneTries
         self.valueSet      = False
         self.value         = None
@@ -37,25 +40,60 @@ class multiLevelTries(object):
     
     
     def setValue(self,value):
+        """
+        this method allow to set the value stored on this node
+
+        @type value: anything even None
+        @param value: the value to store on this node 
+        """
+        
         self.valueSet = True
         self.value    = value
     
     
     def unsetValue(self):
+        """
+        this method allow to unset the value stored on this node
+        """
+        
         self.valueSet = False
         self.value    = None
     
     
     def isValueSet(self):
+        """
+        this method allow to check if a value is set on this node
+
+        @rtype: boolean
+        @return: True if there is a value stored on this node, False otherwise
+        """
+        
         return self.valueSet
     
     
+    def getValue(self):
+        """
+        this method allow to get the value stored on this node
+
+        @rtype: anything even None
+        @return: the value stored on this
+        @raise noValueSetTriesException: if there is no value stored on this node
+        """
+        
+        if not self.valueSet:
+            raise noValueSetTriesException("this node does not contain any value")
+            
+        return self.value
     #
     # @parameter stringList is the list of string token to find in the multiTries
     # @parameter onlyPerfectMatch is a boolean to limit the search to the perfect match result, if it is set to false, the partial result will be allowed
     # @return the number of matching token, 
     #
     def searchNode(self, stringList, onlyPerfectMatch=True):
+        """
+        
+        
+        """
         #print "searchNode <"+str(stringList)+">"
         #check string list
         if stringList == None or not hasattr(stringList, '__iter__') or len(stringList) < 0:
@@ -109,6 +147,9 @@ class multiLevelTries(object):
     # @param value : object to store
     #
     def insert(self, stringList, value, stopTraversalAtThisNode = False, anyStringSuffix="*"):
+        """
+        
+        """
         #identify anyString
         anyStringEnable = [False] * len(stringList)
         if len(anyStringSuffix) > 0:
@@ -139,11 +180,13 @@ class multiLevelTries(object):
         #set the value and its args
         currentMLTriesWhereInsert.setValue(value)
         currentMLTriesWhereInsert.stopTraversal = stopTraversalAtThisNode
-
-    #
-    #
-    #
+    
+    
     def remove(self, stringList):
+        """
+        
+        """
+        
         #print "remove, <"+str(stringList)+">"
         #search for a similar existing stringList in the tree (we want a perfect match)
         existingPath, existing, existingValue = self.searchNode(stringList, True)
@@ -168,11 +211,11 @@ class multiLevelTries(object):
             existingPath[index][1].localTries.remove(existingPath[index][0])
     
     
-
-    #
-    #
-    #
     def update(self, stringList, newValue):
+        """
+        
+        """
+        
         existingPath, existing, existingValue = self.searchNode(stringList, True)
         
         #raise an exception if the path does not exist
@@ -182,11 +225,12 @@ class multiLevelTries(object):
         #set the new value (the last node of the path contains a tries with an empty key tries, this node have to be updated)
         existingPath[-1][2].setValue(newValue)
     
-
-    #
-    #
-    #
+    
     def search(self,stringList, onlyPerfectMatch = False) :
+        """
+        
+        """
+        
         #search for a similar existing stringList in the tree (partial result are accepted)
         existingPath, existing, existingValue = self.searchNode(stringList, onlyPerfectMatch)
         
@@ -205,15 +249,20 @@ class multiLevelTries(object):
     
 
     def advancedSearch(self, stringList, onlyPerfectMatch=True):
+        """
+        
+        """
+        
         #make the search and fill a result object
         existingPath, existing, existingValue = self.searchNode(stringList, onlyPerfectMatch)
         return multiLevelTriesSearchResult(stringList, existingPath, existing, existingValue, onlyPerfectMatch)
-
-
-    #
-    #
-    #
+    
+    
     def setStopTraversal(self, stringList, state):
+        """
+        
+        """
+        
         #test state
         if type(state) != bool:
             raise triesException("(multiLevelTries) setStopTraversal, try to set a non boolean value to the stop traversal state")
@@ -226,11 +275,12 @@ class multiLevelTries(object):
         #update state
         existingPath[-1][2].stopTraversal = state
     
-
-    #
-    #
-    #
+    
     def __repr__(self):
+        """
+        
+        """
+        
         return repr(self.localTries)
     
     
@@ -239,10 +289,12 @@ class multiLevelTries(object):
         current.value.localTries.MTParent = current
         return level+1, current.value.localTries
     
-    #
-    #
-    #
+    
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
+        """
+        
+        """
+        
         current        = self.localTries
         currentPath    = [""]
         traversalState = initState
@@ -319,11 +371,13 @@ class multiLevelTries(object):
 
         ### return the final state
         return traversalState
-
-    #
-    #
-    #    
+    
+    
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False): 
+        """
+        
+        """
+        
         Queue          = []
         traversalState = initState
         
@@ -375,6 +429,10 @@ class multiLevelTries(object):
     #
     #
     def buildDictionnary(self, stringList = (), ignoreStopTraversal=False, addPrexix= False):
+        """
+        
+        """
+        
         #find the starting node if needed
         startingPoint = self
         prefix = []
@@ -438,7 +496,7 @@ class multiLevelTriesSearchResult(object):
     
     def getValue(self):
         if not self.existing:
-            raise triesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value found on this path")
+            raise noValueSetTriesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value found on this path")
         
         return self.existingValue
     
