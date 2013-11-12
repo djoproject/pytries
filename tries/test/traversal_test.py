@@ -1,6 +1,11 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*-
 
+#TODO
+    #-execute test genericBreadthFirstTraversal
+    #-execute test remove function
+        #cause there is a change inside the method body (the merge node)
+
 from tries.tries import tries
 import unittest
 from tries.test.tries_testunit import ElementaryTest
@@ -61,7 +66,14 @@ class TraversalTest(unittest.TestCase, ElementaryTest):
         self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, ({},{},0,))[2] == len(self.insertedKey))
 
     def test_BreadthFirstTraversal(self):
-        pass #TODO
+        self.assertTrue( self.t.genericBreadthFirstTraversal(self._traversal, ({},{},0,))[2] == len(self.insertedKey))
+        
+    def test_traversal_post(self):
+        #the number of traversal is equal to the number of node
+        self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, ({},{},0,), False)[2] == len(self.insertedKey))
+        
+        #do the traversal again, an execution of the traversal can't influence a second execution
+        self.assertTrue( self.t.genericDepthFirstTraversal(self._traversal, ({},{},0,), False)[2] == len(self.insertedKey))
 
 if __name__ == '__main__':
     unittest.main()

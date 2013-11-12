@@ -30,3 +30,7 @@ class pathNotExistsTriesException(triesException):
 class pathExistsTriesException(triesException):
     def __init__(self,value):
         triesException.__init__(self, value)
+        
+class noValueSetTriesException(triesException):
+    def __init__(self,value):
+        triesException.__init__(self, value)
