@@ -129,10 +129,10 @@ class ElementaryTest(object):
             self._inner_test_noCycle(c)
 
     ######### print just the tree
-    def test_traversal_value(self):
-        print ""
-        print self.t.traversal()
-        print ""
+    #def test_traversal_value(self):
+    #    print ""
+    #    print self.t.traversal()
+    #    print ""
 
 class TriesTestState(unittest.TestCase, ElementaryTest):
     

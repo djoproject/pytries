@@ -1,11 +1,6 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*-
 
-#TODO
-    #-execute test genericBreadthFirstTraversal
-    #-execute test remove function
-        #cause there is a change inside the method body (the merge node)
-
 from tries.tries import tries
 import unittest
 from tries.test.tries_testunit import ElementaryTest

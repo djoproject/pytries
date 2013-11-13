@@ -27,8 +27,12 @@ setup(name='Pytries',
       url='https://github.com/djo938/pytries',
       packages=['tries'],
      )
-     #license, platforms, 
+    
+#TODO 
+#license, platforms, 
 #License: UNKNOWN
 #Description: UNKNOWN
 #Platform: UNKNOWN
+
+#TODO install trop de fichier... les tests viennent avec :(
 

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from multiLevelTries import multiLevelTries
-from exception import pathExistsTriesException, pathNotExistsTriesException, triesException
+from tries import multiLevelTries
+from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
 def buildList(minSize, maxSize, charset):
     ret = []
