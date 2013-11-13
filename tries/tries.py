@@ -128,7 +128,7 @@ class tries():
     def _transferNodeContent(self,otherTries):
         self.key += otherTries.key
         
-        self.childs = otherTries
+        self.childs = otherTries.childs
         for c in otherTries.childs:
             c.parent = self
         
@@ -183,7 +183,7 @@ class tries():
                         parent.valueSet = sibbling.valueSet"""
                         
                         #the root become the sibling
-                        parent.transferNodeContent(sibbling)
+                        parent._transferNodeContent(sibbling)
                         
                     else:
                         #merge the intermediate node with the sibling node
@@ -215,7 +215,7 @@ class tries():
                 c.parent = Node"""
             
             #merge node
-            Node.transferNodeContent(Node.childs[0])
+            Node._transferNodeContent(Node.childs[0])
             
             """#del the child
             child.unsetValue()
@@ -550,15 +550,16 @@ class tries():
         
         while len(Queue) > 0:
             #dequeu current node
-            current, level, currentPath = Queue.popleft()
+            current, level, currentPath = Queue.pop(0)
             
             #enqueue node child
-            while c in current.childs:
-                Queue.append( (c,level+1, path+c.key) )
+            for c in current.childs:
+                Queue.append( (c,level+1, currentPath+c.key) )
             
             #execute user function
             traversalState = executeOnNode(currentPath, current, traversalState, level)
     
+        return traversalState
     
 ############ MISC FUNCTION #########################################################################################################################################################################
     
@@ -708,6 +709,9 @@ class tries():
     def __repr__(self):
         """
         This method return a representation of the current tries node
+        
+        @rtype: string
+        @return: the string representation of the object
         """
         
         if self.value == None:

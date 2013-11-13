@@ -4,6 +4,7 @@
 import unittest
 from tries.tries import tries
 from tries.test.tries_testunit import ElementaryTest
+from tries.exception import triesException
 
 class InsertTest(unittest.TestCase, ElementaryTest):
     

@@ -17,5 +17,6 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #build alias
+#from tries.test import test
 from tries import tries
 from multiLevelTries import multiLevelTries
