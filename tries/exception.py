@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*- 
 
-#Copyright (C) 2012  Jonathan Delvaux <jonathan.delvaux@uclouvain.be>
+#Copyright (C) 2012  Jonathan Delvaux <pytries@djoproject.net>
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -34,3 +34,12 @@ class pathExistsTriesException(triesException):
 class noValueSetTriesException(triesException):
     def __init__(self,value):
         triesException.__init__(self, value)
+        
+class ambiguousPathException(triesException):
+    def __init__(self,value):
+        triesException.__init__(self, value)
+        
+class ambiguousPathExceptionWithLevel(ambiguousPathException):
+    def __init__(self,value, level):
+        triesException.__init__(self, value)
+        self.level = level

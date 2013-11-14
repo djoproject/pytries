@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*- 
 
-#Copyright (C) 2012  Jonathan Delvaux <djo938@gmail.com>
+#Copyright (C) 2012  Jonathan Delvaux <pytries@djoproject.net>
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -16,15 +16,37 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#TODO  
-    #comment everything
-        #IN PROGRESS
+#TODO
+    #XXX TEST
+        #setStopTraversal on no value and value node
+        #removeBranch
     
     #pourquoi ne pas pouvoir stocker une chaine vide ?
         #interet ?
+            #genericité
+            #doit fonctionner dans search, remove, insert, ...
+            
+    #XXX ajouter un WARNING ou quelques chose du genre pour le parametre "onlyPerfectMatch"
+        #quand celui-ci est mis, une exception ambiguousPathExceptionWithLevel can occur
+        
+    #XXX les exceptions lancées dans une recherche doivent etre des "searchException" et contenir la stack de l'etat de la recherche
+        #de cette maniere, elle est recuperable dans l'advancedSearch 
+            #il n'y en a qu'une en fait ambiguousPathExceptionWithLevel
+    
+    #stocker les advanced result de chaque noeud tries
+        #interet?
+            #savoir exactement ce qui n'a pas été dans chaque recherche
+                #techniquement on s'en fou, c'est juste interessant pour celui qui a merdé
+                #seul le dernier peut merdé
+            #pour les autres noeuds, il peut etre interessant de savoir si la recherche est issue d'un perfect ou un partial
+                #au niveau du tries alors
+                    #comment avoir cette info ?
+    #XXX comment
+        #search
+        #advancedSearch
     
 from tries import *
-from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException
+from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException,ambiguousPathException, ambiguousPathExceptionWithLevel
 
 class multiLevelTries(object):
     """
@@ -143,28 +165,10 @@ class multiLevelTries(object):
         #set the value and its args
         currentMLTriesWhereInsert.setValue(value)
         currentMLTriesWhereInsert.stopTraversal = stopTraversalAtThisNode
+        
+        return currentMLTriesWhereInsert
     
-    
-    def remove(self, stringList):
-        """
-        This function remove a path from the multi level tries.  This method only removed path with a value on it.
-        
-        @type stringList: string list
-        @param stringList: the string path to remove in the multi level tries
-        """
-        
-        #TODO ?
-            #what about the no value path removing ?
-                #could be interesting to remove a big part of the tree in once action
-        
-        #print "remove, <"+str(stringList)+">"
-        #search for a similar existing stringList in the tree (we want a perfect match)
-        existingPath, existing, existingValue = self.searchNode(stringList, True)
-        
-        #raise an exception if the path does not exist
-        if not existing:
-            raise pathNotExistsTriesException("(multiLevelTries) remove, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
-        
+    def _remove(existingPath):
         #unset value
         existingPath[-1][2].unsetValue()
         
@@ -179,7 +183,51 @@ class multiLevelTries(object):
             
             #remove the value stored
             existingPath[index][1].localTries.remove(existingPath[index][0])
+
+        #no value is return, because in the other function, the mltries is returned, but here the mltries could still have a place into the tree structure
+        #so it is not a good idea to return an element of this structure
     
+    def removeBranch(self,stringList):
+        """
+        This function remove an entire branch of the tree without any check about the child into this branch.
+        The string path must be associated to a value node or a no value node
+        
+        @type stringList: string list
+        @param stringList: the string path to remove in the multi level tries
+        """
+                
+        #find the node
+        existingPath, existing, existingValue = self.searchNode(stringList, True)
+        
+        if existingPath[-1][2] == None:
+            raise pathNotExistsTriesException("(multiLevelTries) remove, The branch <"+" ".join(stringList)+"> does not exist in the multi tries")
+        
+        #reset the tries
+        existingPath[-1][2].localTries = tries()
+        
+        #use the generic part of remove
+        self._remove(existingPath)
+    
+    
+    def remove(self, stringList):
+        """
+        This function remove a path from the multi level tries.  This method only removed path with a value on it.
+        The path must only be associated to a value node
+        
+        @type stringList: string list
+        @param stringList: the string path to remove in the multi level tries
+        """
+
+        #search for a similar existing stringList in the tree (we want a perfect match)
+        existingPath, existing, existingValue = self.searchNode(stringList, True)
+        
+        #raise an exception if the path does not exist
+        if not existing:
+            raise pathNotExistsTriesException("(multiLevelTries) remove, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+        
+        self._remove(existingPath)
+        
+
     
     def update(self, stringList, newValue):
         """
@@ -203,13 +251,37 @@ class multiLevelTries(object):
         existingPath[-1][2].setValue(newValue)
         return existingPath[-1][2]
     
-    def move(self, oldStringList, newStringList):
+    def move(self, oldStringList, newStringList, anyStringSuffix="*"):
+        """
+        This function move a value from an old path to a new one.
+        The old path is removed except if the new one already exists.
+        
+        @type oldStringList: string list
+        @param oldStringList: the old path to remove
+        @type newStringList: string list
+        @param newStringList: the new path to insert
+        @type anyStringSuffix: string
+        @param anyStringSuffix: set the anystring string for the new string list, to disable it, set an ampty string
+        @rtype: multiLevelTries
+        @return: the new multiLevelTries node inserted on the new string list path
+        @raise pathExistsTriesException: if a value is already associated with the new path
         """
         
-        """
-        pass #TODO move a value from an old path to a new one
-            #already build a similar function in tries ?
-    
+        #looking for the previous path
+        existingPath, existing, existingValue = self.searchNode(oldStringList, True)
+        
+        #raise an exception if the path does not exist
+        if not existing:
+            raise pathNotExistsTriesException("(multiLevelTries) move, The path <"+" ".join(oldStringList)+"> does not exist in the multi tries")
+        
+        #insert the new one
+        newNode = self.insert(newStringList, existingValue,existingPath[-1][2].stopTraversal,anyStringSuffix)
+        
+        #remove the old
+        self.remove(oldStringList)
+        
+        return newNode
+        
 ############ SEARCH FUNCTION #########################################################################################################################################################################
     
     
@@ -228,12 +300,13 @@ class multiLevelTries(object):
                                                               the second one is a boolean to indicate if there is a value match
                                                               the third one is the value found, if the previous boolean is False, the value of this variable is irrelevant
         The tuple of the list is composed of the token string used at this step, the mltries used to make the search, the mltries found in the search and the tries where the value found is stored
+        @raise triesException: if invalid argument
+        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
         #print "searchNode <"+str(stringList)+">"
         #check string list
         if stringList == None or not hasattr(stringList, '__iter__') or len(stringList) < 0:
-            
             raise triesException("(multiLevelTries) searchNode, need string token to search a value, no token found")
         
         #SEARCH a similar String list
@@ -250,10 +323,13 @@ class multiLevelTries(object):
             #search the string[i] in the current tries
             parentMLTries_tmp = MLTries_tmp
             if onlyPerfectMatch:
-                tmp = MLTries_tmp.localTries.search(stringList[i])
+                tmp = MLTries_tmp.localTries.searchPerfect(stringList[i])
             else:
-                tmp = MLTries_tmp.localTries.searchUniqueFromPrefix(stringList[i]) #allow partial but non ambigous result
-            
+                try:
+                    tmp = MLTries_tmp.localTries.search(stringList[i]) #allow partial but non ambigous result
+                except ambiguousPathException as ape:
+                    raise ambiguousPathExceptionWithLevel(ape.value+" at level "+str(i),i)
+                
             if tmp != None:
                 MLTries_tmp = tmp.value
             else:
@@ -343,23 +419,20 @@ class multiLevelTries(object):
         @raise triesException: if the new state is not a valid boolean
         @raise pathNotExistsTriesException: if the path does not exist
         """
-        
-        #TODO?
-            #set the boolean on no value node
-                #impact ?
-                    #some path will completly disappear from the dictionary or traversal
-                        #it is the goal, no ?
-                #the past must exist
-        
+                
         #test state
         if type(state) != bool:
             raise triesException("(multiLevelTries) setStopTraversal, try to set a non boolean value to the stop traversal state")
         
         #look after the string
         existingPath, existing, existingValue = self.searchNode(stringList, True)
-        if not existing:
+        #if not existing:
+        #    raise pathNotExistsTriesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+        
+        #check if a node (value or not) exist on this path
+        if len(existingPath) < len(stringList) or existingPath[-1][2] == None:
             raise pathNotExistsTriesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
-    
+        
         #update state
         existingPath[-1][2].stopTraversal = state
         return existingPath[-1][2]
@@ -388,10 +461,10 @@ class multiLevelTries(object):
         @attention: this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
         """
         
-        current        = self.localTries
-        currentPath    = [""]
-        traversalState = initState
-        level          = 0
+        current        = self.localTries #current is always a tries, never a mltries
+        currentPath    = [""]            #string list of the current path
+        traversalState = initState       #the evolution of the state variable
+        level          = 0               #the level of the current node
          
         while current != None:
             #print currentPath, current
@@ -596,6 +669,7 @@ class multiLevelTriesSearchResult(object):
     @version: 1.0
     @licence: GPL v3
     """
+            
     def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch):
         """
         This method is the constructor of the multi level tries advanced search.
@@ -639,15 +713,21 @@ class multiLevelTriesSearchResult(object):
     
     def getFoundCompletePath(self):
         """
+        This method convert any prefix into the original stringList into the complete string stored in the tree
         
-        @rtype: 
-        @return: 
+        @rtype: string list
+        @return: the list of the complete path of each token in the original string list
         """
-        pass#TODO
-        #make a method to build the path with complete path, looks like a part of the code of buildDictionnary 
-            #because the stringList could be a list of prefix and not a list of completeString
         
-    
+        ret = []
+        for string, parentMLT, valueMLT, triesNode in self.existingPath:
+            if triesNode == None:
+                break
+        
+            ret.append(triesNode.getCompleteName)
+        
+        return ret
+        
     def getNotFoundToken(self):
         """
         This method returns a list with the tokens not found

@@ -17,7 +17,7 @@
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-from exception import triesException, noValueSetTriesException, pathExistsTriesException, pathNotExistsTriesException
+from exception import triesException, noValueSetTriesException, pathExistsTriesException, pathNotExistsTriesException, ambiguousPathException
 from utils import noneFunc, charInCommons, returnNode
 
 class tries():
@@ -412,8 +412,9 @@ class tries():
                 #the searched prefix has a unknown suffix in the tree
                 return falseResult(currentNode,prefix,count,totalCount) # bee != bear
     
-    
-    def search(self,key):
+    #TODO merge searchPerfect et search, ajouter un boolean pour distinguer la perfect et la partial
+        #comme pour le mltries
+    def searchPerfect(self,key): 
         """
         This search looks for a perfect key match and return a value node or an non value node
         
@@ -430,7 +431,7 @@ class tries():
         return None
     
 
-    def searchUniqueFromPrefix(self,prefix):
+    def search(self,prefix): 
         """
         this function looks for a complete path corresponding to the prefix string given
         
@@ -447,7 +448,7 @@ class tries():
                 return Node
             else:
                 #ambiguous result, raise
-                raise triesException("the prefix <"+str(prefix)+"> corresponds to multiple node")
+                raise ambiguousPathException("the prefix <"+str(prefix)+"> corresponds to multiple node")
         
         #no match in the tree
         return None
