@@ -40,6 +40,7 @@ class ambiguousPathException(triesException):
         triesException.__init__(self, value)
         
 class ambiguousPathExceptionWithLevel(ambiguousPathException):
-    def __init__(self,value, level):
+    def __init__(self,value, level,searchStack):
         triesException.__init__(self, value)
-        self.level = level
+        self.level       = level
+        self.searchStack = searchStack
