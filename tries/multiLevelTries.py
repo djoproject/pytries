@@ -25,38 +25,38 @@
             #no it return mltries and not value
         #move
         #empty path
+            #every methods
     
     #XXX empty path
         #manage empty path into the traversals
-    
-    #FUTURE IMPROVMENT (discussion)
-        #stocker les advanced result de chaque noeud tries
-        #interet?
-            #savoir exactement ce qui n'a pas été dans chaque recherche
-                #techniquement on s'en fou, c'est juste interessant pour celui qui a merdé
-                #seul le dernier peut merdé
-            #pour les autres noeuds, il peut etre interessant de savoir si la recherche est issue d'un perfect ou un partial
-                #au niveau du tries alors
-                    #comment avoir cette info ?
-    
+        
 from tries import *
 from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException,ambiguousPathException, ambiguousPathExceptionWithLevel
 
 #TODO build a method to get the last item on the path
     #no more existingPath[-1][2] in the code
+    #propagate the method
+def getLastMltFoundEvenWithoutValue(existingPath):
+    if not isPathFound(existingPath):
+        raise pathNotExistsTriesException("there is no path at all in this result")
+
+    return existingPath[-1][2]
 
 def isPathFound(existingPath):
     return existingPath[-1][2] != None
 
+
 def isValueFound(stringList, existingPath):
     #return (len(stringList) == 0 and existingPath[0][1].valueSet) or (len(stringList) > 0 and existingPath[-1][2] != None and existingPath[-1][2].valueSet)
     return existingPath[-1][2] != None and existingPath[-1][2].valueSet
-    
+
+
 def getMltFound(stringList, existingPath):
     if not isValueFound(stringList, existingPath):
         raise noValueSetTriesException("No value set on the path<"+" ".join(stringList)+">")
         
     return existingPath[-1][2]
+
 
 class multiLevelTries(object):
     """
@@ -81,7 +81,7 @@ class multiLevelTries(object):
     def setValue(self,value):
         """
         this method allow to set the value stored on this node
-
+        
         @type value: anything even None
         @param value: the value to store on this node 
         """
@@ -102,7 +102,7 @@ class multiLevelTries(object):
     def isValueSet(self):
         """
         this method allow to check if a value is set on this node
-
+        
         @rtype: boolean
         @return: True if there is a value stored on this node, False otherwise
         """
@@ -113,7 +113,7 @@ class multiLevelTries(object):
     def getValue(self):
         """
         this method allow to get the value stored on this node
-
+        
         @rtype: anything even None
         @return: the value stored on this
         @raise noValueSetTriesException: if there is no value stored on this node
@@ -171,7 +171,7 @@ class multiLevelTries(object):
                 currentMLTriesWhereInsert = currentMLTriesWhereInsert.localTries.insert(stringList[i],multiLevelTries(), anyStringEnable[i]).value
         else: #existingPath[-1][2] is different of None, so the complete path has been found, but the last node has no value
             currentMLTriesWhereInsert = existingPath[-1][2]
-
+        
         #set the value and its args
         currentMLTriesWhereInsert.setValue(value)
         currentMLTriesWhereInsert.stopTraversal = stopTraversalAtThisNode
@@ -197,7 +197,7 @@ class multiLevelTries(object):
             
             existingPath[index][1].localTries.remove(existingPath[index][0])
             
-
+            
         #no value is return, because in the other function, the mltries is returned, but here the mltries could still have a place into the tree structure
         #so it is not a good idea to return an element of this structure
     
@@ -231,7 +231,7 @@ class multiLevelTries(object):
         @type stringList: string list
         @param stringList: the string path to remove in the multi level tries
         """
-
+        
         #search for a similar existing stringList in the tree (we want a perfect match)
         existingPath = self.searchNode(stringList, True)
         
@@ -241,8 +241,7 @@ class multiLevelTries(object):
         
         self._remove(existingPath)
         
-
-    
+        
     def update(self, stringList, newValue):
         """
         This method update the value of an existing path
@@ -359,7 +358,7 @@ class multiLevelTries(object):
                 
             #store the result (string token, the MLTries parent, and the MLTries child or None if not found)
             triesLinked.append( (stringList[i],parentMLTries_tmp, MLTries_tmp, tmp) )
-
+            
             #is there a match ?
             if MLTries_tmp != None:
                 #every string had been consumed ?
@@ -509,11 +508,11 @@ class multiLevelTries(object):
                 #remove the reference about the traversal
                 if preOrder and current.isValueSet() and "MTParent" in current.value.localTries.__dict__.keys():
                     del current.value.localTries.MTParent
-
+            
         ### child process ###
             #explore only if there is more than one child AND no post order traversal in progress
                 #because if there is a postorder traversal, the childs have been already explored
-
+            
             if len(current.childs) > 0 and (preOrder or (not current.isValueSet() or "MTParent" not in current.value.localTries.__dict__.keys())  ): #is there some child to explore ?
                 #does the exploration already start ?
                 if "traversal_index" not in current.__dict__.keys():
@@ -547,7 +546,7 @@ class multiLevelTries(object):
             
             #back to the parent
             del current.traversed
-
+            
             #if we are at the tries root, test if there is a parent Multi Level Tries, and go up if necessary
             if current.parent == None and hasattr(current,"MTParent") and current.MTParent:
                 level -= 1
@@ -557,7 +556,7 @@ class multiLevelTries(object):
                 continue
             
             current = current.parent
-
+        
         ### return the final state
         return traversalState
     
@@ -683,6 +682,7 @@ class multiLevelTries(object):
         return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
     
     
+
 
 class multiLevelTriesSearchResult(object):
     """
@@ -906,5 +906,29 @@ class multiLevelTriesSearchResult(object):
         @return: True if the result has produced an ambiguous result, False otherwise
         """
         return self.ambiguous
-
-
+    
+    
+    def getAdvancedTriesResult(self, tokenIndex):
+        #is empty path?
+        if len(self.stringList) == 0:
+            pass #TODO raise
+        
+        #TODO index is valid ?
+        if len(self.existingPath) < tokenIndex or tokenIndex < 0:
+            pass #TODO raise
+        
+        
+        
+        #TODO create the advanced search
+            #take care of empty result and empty path
+                
+        pass #TODO
+        
+    def getAdvancedTriesResultForLastTokenExplored(self):
+        #TODO find the last explored token
+        
+        #TODO create the advanced search
+            #take care of empty result and empty path
+        
+        pass #TODO
+    
