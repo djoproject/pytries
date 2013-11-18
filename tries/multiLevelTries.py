@@ -28,9 +28,6 @@
             #every methods
         #traversal
             #with the node level
-    
-    #XXX empty path
-        #manage empty path into genericDepthFirstTraversal
         
 from tries import *
 from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException,ambiguousPathException, ambiguousPathExceptionWithLevel
@@ -45,6 +42,7 @@ class multiLevelTries(object):
     @licence: GPL v3
     @see: http://en.wikipedia.org/wiki/Trie
     """
+    
     def __init__(self):#, parentMLTries = None):
         """
         this method init the multiLevelTries with an empty tries root
@@ -156,6 +154,7 @@ class multiLevelTries(object):
         
         return currentMLTriesWhereInsert
     
+    
     def _remove(searchResult):
         #unset value
         searchResult.getMltFound().unsetValue()
@@ -178,6 +177,7 @@ class multiLevelTries(object):
             
         #no value is return, because in the other function, the mltries is returned, but here the mltries could still have a place into the tree structure
         #so it is not a good idea to return an element of this structure
+    
     
     def removeBranch(self,stringList):
         """
@@ -278,6 +278,7 @@ class multiLevelTries(object):
         return newNode
         
 ############ SEARCH FUNCTION #########################################################################################################################################################################
+    
     
     
     def searchNode(self, stringList, onlyPerfectMatch=True):
@@ -394,8 +395,8 @@ class multiLevelTries(object):
         except ambiguousPathExceptionWithLevel as apewl:
             return apewl.searchStack
     
-############ TRAVERSAL FUNCTION #####################################################################################################################################################################
     
+############ TRAVERSAL FUNCTION #####################################################################################################################################################################
     
     def setStopTraversal(self, stringList, state):
         """
@@ -436,7 +437,6 @@ class multiLevelTries(object):
     
     
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
-        #TODO manage empty path
         """
         This function executes a depth first traversal on the multi level tries.
         
@@ -456,7 +456,11 @@ class multiLevelTries(object):
         current        = self.localTries #current is always a tries, never a mltries
         currentPath    = [""]            #string list of the current path
         traversalState = initState       #the evolution of the state variable
-        level          = 0               #the level of the current node
+        level          = 1               #the level of the current node
+         
+        #explore empty path preOrder
+        if preOrder:
+            traversalState = executeOnNode([], self, traversalState, 0)
          
         while current != None:
             #print currentPath, current
@@ -527,6 +531,10 @@ class multiLevelTries(object):
             
             current = current.parent
         
+        #explore empty path postOrder
+        if not preOrder:
+            return executeOnNode([], self, traversalState, 0)
+        
         ### return the final state
         return traversalState
     
@@ -591,7 +599,7 @@ class multiLevelTries(object):
     def _inner_buildDictionnary(self, path, node, state, level):
         if not node.isValueSet():
             return state
-    
+        
         state[tuple(path)] = node.value
         return state
     
@@ -650,7 +658,8 @@ class multiLevelTries(object):
                 return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnaryWithPath, (prefix,{}), True, ignoreStopTraversal)[1]
         
         #start the search
-        return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
+        return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)        
+
 
 
 class multiLevelTriesSearchResult(object):
@@ -661,22 +670,16 @@ class multiLevelTriesSearchResult(object):
     @version: 1.0
     @licence: GPL v3
     """
-            
-    #def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch, ambiguous):
+        
     def __init__(self, stringList, existingPath, onlyPerfectMatch, ambiguous = False):
-        #TODO
         """
-        This method is the constructor of the multi level tries advanced search.
+        This method is the constructor of the multi level tries search result.
         Its arguments are every value extracted from the search algorithm
         
         @type stringList: list of string
         @param stringList: the list of string explored in the tree
         @type existingPath: list of tuple(string, multiLevelTries, multiLevelTries, tries)
         @param existingPath: it is the stack of every exploration step of the search process, see searchNode function in multiLevelTries
-        @type existing: boolean
-        @param existing: True is a value corresponds to the stringList, False otherwise
-        @type existingValue: anything
-        @param existingValue: If the existing is set to True, this variable contains the value corresponding to the stringList, otherWise its value is irrelevant 
         @type onlyPerfectMatch: boolean
         @param onlyPerfectMatch: this boolean is set to True if it was set to true during the search call, False otherwise
         @type ambiguous: boolean
@@ -696,16 +699,19 @@ class multiLevelTriesSearchResult(object):
             self.tokenFoundCount -= 1
         
         self.tokenNotFound = len(self.stringList) - self.tokenFoundCount
-
-
+    
+    
     def isPathFound(self):
-        #TODO
         """
+        This method returns True if the search process has found a path corresponding to the string list
         
+        @rtype: boolean
+        @return: True if the search process has found a path, False otherwise
         """
         
         return self.existingPath[-1][2] != None
-
+    
+    
     def isValueFound(self):
         """
         This method returns True if a value corresponds to the explored path.
@@ -719,9 +725,12 @@ class multiLevelTriesSearchResult(object):
 
 
     def getMltFound(self):
-        #TODO
         """
+        This method return the multi level tries node corresponding to the path
         
+        @rtype: multiLevelTries
+        @return: the multi level tries node corresponding to the path
+        @raise noValueSetTriesException: if there is not multi level tries node corresponding to the path
         """
         
         if not self.isValueFound() and not self.isPathFound():
@@ -731,7 +740,7 @@ class multiLevelTriesSearchResult(object):
         
     def getValue(self):
         """
-        This method returns the value corresponding to the explored path if exists, otherwise an exception is raised
+        This method returns the value stored in the multi level tries node corresponding to the explored path if exists, otherwise an exception is raised
         
         @rtype: anything
         @return: the value corresponding to the explored path
@@ -747,6 +756,7 @@ class multiLevelTriesSearchResult(object):
     
     ###
     
+    
     def getFoundToken(self):
         """
         This method returns a list with the tokens found
@@ -756,6 +766,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return self.stringList[:self.tokenFoundCount]
+    
     
     def getFoundCompletePath(self):
         """
@@ -773,7 +784,8 @@ class multiLevelTriesSearchResult(object):
             ret.append(triesNode.getCompleteName)
         
         return ret
-        
+    
+    
     def getNotFoundToken(self):
         """
         This method returns a list with the tokens not found
@@ -783,6 +795,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return self.stringList[:self.tokenFoundCount]
+    
     
     def getTokenFoundCount(self):
         """
@@ -794,6 +807,7 @@ class multiLevelTriesSearchResult(object):
         
         return self.tokenFoundCount
     
+    
     def getTokenNotFoundCount(self):
         """
         This methode returns the count of the token not found in the mltries.
@@ -803,6 +817,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return self.tokenNotFound
+    
     
     def getTotalTokenCount(self):
         """
@@ -814,6 +829,7 @@ class multiLevelTriesSearchResult(object):
         
         return len(self.stringList)
     
+    
     def getTokenUsed(self):
         """
         This method returns the number of token used in the search process.
@@ -824,7 +840,8 @@ class multiLevelTriesSearchResult(object):
         """
         
         return len(self.existingPath)
-        
+    
+
     def getTokenNotUsed(self):
         """
         This method returns the number of token not used in the search process. 
@@ -836,6 +853,7 @@ class multiLevelTriesSearchResult(object):
         
         return len(self.stringList) - len(self.existingPath) 
     
+    
     def isAvalueOnTheLastTokenFound(self):
         """
         This methode returns True if there is a value stored on the last token found, otherwise the method return False
@@ -845,6 +863,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return self.tokenFoundCount > 0 and self.existingPath[self.tokenFoundCount-1][2] != None and self.existingPath[self.tokenFoundCount-1][2].isValueSet()
+    
     
     def getLastTokenFoundValue(self):
         """
@@ -861,6 +880,7 @@ class multiLevelTriesSearchResult(object):
         
         return self.existingPath[self.tokenFoundCount-1][1].value
     
+    
     def isAllTokenHasBeenConsumed(self):
         """
         This method returns True if every token have been found into the mltries.  
@@ -871,6 +891,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return len(self.stringList) == self.tokenFoundCount
+    
     
     ### not found reason
     
@@ -888,6 +909,7 @@ class multiLevelTriesSearchResult(object):
         
         return self.existingPath[-1][1].localTries.isEmpty()
     
+
     #
     # the last token searched was not found in the 
     #    occurs when last explored tries is not empty
@@ -902,6 +924,8 @@ class multiLevelTriesSearchResult(object):
         """
         
         return not self.isPathFound()# and not self.existing
+    
+
     #
     # the path has been completly found be there is no value attached to this path
     #
@@ -916,6 +940,7 @@ class multiLevelTriesSearchResult(object):
         return self.isPathFound() and not self.isValueFound()
         #return self.pathExistButNoValue
     
+    
     def isPerfectSearchSet(self):
         """
         This method return True is the search was started with the boolean PerfectSearch set to True, otherwise it returns False
@@ -925,6 +950,7 @@ class multiLevelTriesSearchResult(object):
         """
         
         return self.onlyPerfectMatch
+    
     
     def isAmbiguous(self):
         """
@@ -963,7 +989,8 @@ class multiLevelTriesSearchResult(object):
         
         #return the whole result
         return advancedTriesResult
-        
+    
+    
     def getAdvancedTriesResultForLastTokenExplored(self):
         """
         This method returns the advanced result of the last used token into its corresponding tries.
@@ -975,3 +1002,4 @@ class multiLevelTriesSearchResult(object):
         
         return self.getAdvancedTriesResult(len(self.existingPath) - 1)
     
+
