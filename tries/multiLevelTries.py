@@ -26,36 +26,14 @@
         #move
         #empty path
             #every methods
+        #traversal
+            #with the node level
     
     #XXX empty path
-        #manage empty path into the traversals
+        #manage empty path into genericDepthFirstTraversal
         
 from tries import *
 from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException,ambiguousPathException, ambiguousPathExceptionWithLevel
-
-#TODO build a method to get the last item on the path
-    #no more existingPath[-1][2] in the code
-    #propagate the method
-def getLastMltFoundEvenWithoutValue(existingPath):
-    if not isPathFound(existingPath):
-        raise pathNotExistsTriesException("there is no path at all in this result")
-
-    return existingPath[-1][2]
-
-def isPathFound(existingPath):
-    return existingPath[-1][2] != None
-
-
-def isValueFound(stringList, existingPath):
-    #return (len(stringList) == 0 and existingPath[0][1].valueSet) or (len(stringList) > 0 and existingPath[-1][2] != None and existingPath[-1][2].valueSet)
-    return existingPath[-1][2] != None and existingPath[-1][2].valueSet
-
-
-def getMltFound(stringList, existingPath):
-    if not isValueFound(stringList, existingPath):
-        raise noValueSetTriesException("No value set on the path<"+" ".join(stringList)+">")
-        
-    return existingPath[-1][2]
 
 
 class multiLevelTries(object):
@@ -153,24 +131,24 @@ class multiLevelTries(object):
                     anyStringEnable[i] = True
         
         #search for a similar existing stringList in the tree (we want a perfect match)
-        existingPath = self.searchNode(stringList, True)
+        searchResult = self.searchNode(stringList, True)
         
         #raise an exception if the path exist
-        if isValueFound(stringList, existingPath):
+        if searchResult.isValueFound():
             raise pathExistsTriesException("(multiLevelTries) insert, the path <"+" ".join(stringList)+"> already exists in the multi tries")
         
         #manage the case where we want to insert into an empty intermediate node
-        if not isPathFound(existingPath):
+        if not searchResult.isPathFound():
             #determine where the string list must be insert, searchNode always return at least one value in existingPath
                 #in the worst case, it contains [(stringList[0], self, None)]
-            currentMLTriesWhereInsert = existingPath[-1][1] #the token is not found in the last MLTries
+            currentMLTriesWhereInsert = searchResult.existingPath[-1][1] #the token is not found in the last MLTries
             
             #insert the path
-            for i in range(len(existingPath)-1, len(stringList)): #from the first index of a non common string to the end of the list
+            for i in range(len(searchResult.existingPath)-1, len(stringList)): #from the first index of a non common string to the end of the list
                 #currentMLTriesWhereInsert = currentMLTriesWhereInsert.localTries.insert(stringList[i],multiLevelTries(currentMLTriesWhereInsert), anyStringEnable[i]).value
                 currentMLTriesWhereInsert = currentMLTriesWhereInsert.localTries.insert(stringList[i],multiLevelTries(), anyStringEnable[i]).value
-        else: #existingPath[-1][2] is different of None, so the complete path has been found, but the last node has no value
-            currentMLTriesWhereInsert = existingPath[-1][2]
+        else: #searchResult.existingPath[-1][2] is different of None, so the complete path has been found, but the last node has no value
+            currentMLTriesWhereInsert = searchResult.getMltFound()
         
         #set the value and its args
         currentMLTriesWhereInsert.setValue(value)
@@ -178,24 +156,24 @@ class multiLevelTries(object):
         
         return currentMLTriesWhereInsert
     
-    def _remove(existingPath):
+    def _remove(searchResult):
         #unset value
-        existingPath[-1][2].unsetValue()
+        searchResult.getMltFound().unsetValue()
         
         #remove the node from bottom up
-        for i in range(0,len(existingPath)):
+        for i in range(0,len(searchResult.existingPath)):
             #next node index to remove
-            index = len(existingPath) - 1 - i
+            index = len(searchResult.existingPath) - 1 - i
             
             #child to remove can't have value or child in the tries
-            if existingPath[index][2].isValueSet() or not existingPath[index][2].localTries.isEmpty():
+            if searchResult.existingPath[index][2].isValueSet() or not searchResult.existingPath[index][2].localTries.isEmpty():
                 break
             
             #remove the value stored
-            if existingPath[index][1] == None:
+            if searchResult.existingPath[index][1] == None:
                 break
             
-            existingPath[index][1].localTries.remove(existingPath[index][0])
+            searchResult.existingPath[index][1].localTries.remove(searchResult.existingPath[index][0])
             
             
         #no value is return, because in the other function, the mltries is returned, but here the mltries could still have a place into the tree structure
@@ -211,16 +189,16 @@ class multiLevelTries(object):
         """
                 
         #find the node
-        existingPath = self.searchNode(stringList, True)
+        searchResult = self.searchNode(stringList, True)
         
-        if not isPathFound(existingPath):
+        if not searchResult.isPathFound():
             raise pathNotExistsTriesException("(multiLevelTries) remove, The branch <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #reset the tries
-        existingPath[-1][2].localTries = tries()
+        searchResult.getMltFound().localTries = tries()
         
         #use the generic part of remove
-        self._remove(existingPath)
+        self._remove(searchResult)
     
     
     def remove(self, stringList):
@@ -233,13 +211,13 @@ class multiLevelTries(object):
         """
         
         #search for a similar existing stringList in the tree (we want a perfect match)
-        existingPath = self.searchNode(stringList, True)
+        searchResult = self.searchNode(stringList, True)
         
         #raise an exception if the path does not exist
-        if not isValueFound(stringList, existingPath):
+        if not searchResult.isValueFound():
             raise pathNotExistsTriesException("(multiLevelTries) remove, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
-        self._remove(existingPath)
+        self._remove(searchResult)
         
         
     def update(self, stringList, newValue):
@@ -254,14 +232,14 @@ class multiLevelTries(object):
         @return: the updated multiLevelTries node
         """
         
-        existingPath = self.searchNode(stringList, True)
+        searchResult = self.searchNode(stringList, True)
         
         #raise an exception if the path does not exist
-        if not isValueFound(stringList, existingPath):
+        if not searchResult.isValueFound():
             raise pathNotExistsTriesException("(multiLevelTries) update, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #set the new value (the last node of the path contains a tries with an empty key tries, this node have to be updated)
-        existingMlt = getMltFound(stringList, existingPath)
+        existingMlt = searchResult.getMltFound()
         existingMlt.setValue(newValue)
         return existingMlt
     
@@ -282,13 +260,13 @@ class multiLevelTries(object):
         """
         
         #looking for the previous path
-        existingPath = self.searchNode(oldStringList, True)
+        searchResult = self.searchNode(oldStringList, True)
         
         #raise an exception if the path does not exist
-        if not isValueFound(oldStringList, existingPath):
+        if not searchResult.isValueFound():
             raise pathNotExistsTriesException("(multiLevelTries) move, The path <"+" ".join(oldStringList)+"> does not exist in the multi tries")
         
-        existingMlt = getMltFound(stringList, existingPath)
+        existingMlt = searchResult.getMltFound()
         existingValue = existingMlt.value
         
         #insert the new one
@@ -327,7 +305,7 @@ class multiLevelTries(object):
         
         #manage empty path
         if len(stringList) == 0:
-            return [(None,None, self, None)]
+            return multiLevelTriesSearchResult(stringList, [(None,None, self, None)], onlyPerfectMatch)
         
         #SEARCH a similar String list
         parentMLTries_tmp = None
@@ -349,7 +327,7 @@ class multiLevelTries(object):
                     tmp = MLTries_tmp.localTries.search(stringList[i]) #allow partial but non ambigous result
                 except ambiguousPathException as ape:
                     triesLinked.append( (stringList[i],parentMLTries_tmp, None, None) )
-                    raise ambiguousPathExceptionWithLevel(ape.value+" at level "+str(i),i,triesLinked)
+                    raise ambiguousPathExceptionWithLevel(ape.value+" at level "+str(i),i,multiLevelTriesSearchResult(stringList,triesLinked, onlyPerfectMatch, True))
                 
             if tmp != None:
                 MLTries_tmp = tmp.value
@@ -363,14 +341,14 @@ class multiLevelTries(object):
             if MLTries_tmp != None:
                 #every string had been consumed ?
                 if i == len(stringList)-1:
-                    return triesLinked
+                    return multiLevelTriesSearchResult(stringList,triesLinked, onlyPerfectMatch)
                 
                 #continue to explore, there are still string tokens and tries to explore 
                 continue
             #no more tries to explore, we stop the search
             break
         #at this point, we found a result or the path does not exist in the tree
-        return triesLinked    
+        return multiLevelTriesSearchResult(stringList,triesLinked, onlyPerfectMatch)    
     
     
     def search(self,stringList, onlyPerfectMatch = False) :
@@ -388,11 +366,11 @@ class multiLevelTries(object):
         """
         
         #search for a similar existing stringList in the tree (partial result are accepted)
-        existingPath = self.searchNode(stringList, onlyPerfectMatch)
+        searchResult = self.searchNode(stringList, onlyPerfectMatch)
         
         #return the value found
-        if isValueFound(stringList, existingPath):
-            return getMltFound(stringList, existingPath)
+        if searchResult.isValueFound():
+            return searchResult.getMltFound()
             
         return None
     
@@ -412,18 +390,9 @@ class multiLevelTries(object):
         
         #make the search and fill a result object
         try:
-            existingPath = self.searchNode(stringList, onlyPerfectMatch)
-            existing = isValueFound(stringList, existingPath)
-            if existing:
-                existingValue = getMltFound(stringList, existingPath).value
-            else:
-                existingValue = None
-            ambiguous = False
+            return self.searchNode(stringList, onlyPerfectMatch)
         except ambiguousPathExceptionWithLevel as apewl:
-            existingPath, existing, existingValue, ambiguous = apewl.searchStack, False, None, True
-        
-        return multiLevelTriesSearchResult(stringList, existingPath, existing, existingValue, onlyPerfectMatch, ambiguous)
-    
+            return apewl.searchStack
     
 ############ TRAVERSAL FUNCTION #####################################################################################################################################################################
     
@@ -447,17 +416,17 @@ class multiLevelTries(object):
             raise triesException("(multiLevelTries) setStopTraversal, try to set a non boolean value to the stop traversal state")
         
         #look after the string
-        existingPath = self.searchNode(stringList, True)
-        #if not isValueFound(stringList, existingPath):
+        searchResult = self.searchNode(stringList, True)
+        #if not searchResult.isValueFound():
         #    raise pathNotExistsTriesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #check if a node (value or not) exist on this path
-        if not isPathFound(existingPath): #len(existingPath) < len(stringList) or 
+        if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
             raise pathNotExistsTriesException("(multiLevelTries) setStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #update state
-        existingPath[-1][2].stopTraversal = state
-        return existingPath[-1][2]
+        searchResult.getMltFound().stopTraversal = state
+        return searchResult.getMltFound()
     
     
     def _exploreNextTries(self, level, currentPath, current):
@@ -467,6 +436,7 @@ class multiLevelTries(object):
     
     
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
+        #TODO manage empty path
         """
         This function executes a depth first traversal on the multi level tries.
         
@@ -580,9 +550,10 @@ class multiLevelTries(object):
         traversalState = initState
         
         #init the Queue with every key value of the first level tries
-        keyValue = self.localTries.getKeyValue()
-        for k,v in keyValue.iteritems():
-            Queue.append( (v, 0, [k],))
+        #keyValue = self.localTries.getKeyValue()
+        #for k,v in keyValue.iteritems():
+        #    Queue.append( (v, 0, [k],))
+        Queue.append( (self, 0, [],))
         
         #read the queue
         while len(Queue) > 0:
@@ -661,18 +632,18 @@ class multiLevelTries(object):
         startingPoint = self
         prefix = []
         if len(stringList) > 0:
-            existingPath = self.searchNode(stringList, True)
+            searchResult = self.searchNode(stringList, True)
             
             #raise an exception if the path does not exist
-            if not isValueFound(stringList, existingPath): #TODO value found or path found ?
+            if not searchResult.isPathFound():
                 raise pathNotExistsTriesException("(multiLevelTries) buildDictionnary, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
             
-            startingPoint = existingPath[-1][2]
+            startingPoint = searchResult.getMltFound()
             
             #build prefix
             prefix = []
             if addPrexix:
-                for string, parentMLT, valueMLT, triesNode in existingPath:
+                for string, parentMLT, valueMLT, triesNode in searchResult.existingPath:
                     prefix.append(triesNode.getCompleteName())
         
             if len(prefix) > 0:
@@ -680,8 +651,6 @@ class multiLevelTries(object):
         
         #start the search
         return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)
-    
-    
 
 
 class multiLevelTriesSearchResult(object):
@@ -693,7 +662,9 @@ class multiLevelTriesSearchResult(object):
     @licence: GPL v3
     """
             
-    def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch, ambiguous):
+    #def __init__(self, stringList, existingPath, existing, existingValue, onlyPerfectMatch, ambiguous):
+    def __init__(self, stringList, existingPath, onlyPerfectMatch, ambiguous = False):
+        #TODO
         """
         This method is the constructor of the multi level tries advanced search.
         Its arguments are every value extracted from the search algorithm
@@ -714,18 +685,67 @@ class multiLevelTriesSearchResult(object):
         @return: an instance of multiLevelTriesSearchResult
         """
         
-        self.stringList      = stringList
-        self.existingPath    = existingPath
-        self.existing        = existing
-        self.existingValue   = existingValue
-        self.tokenFoundCount = len(existingPath)
-        self.ambiguous       = ambiguous
+        self.stringList   = stringList
+        self.existingPath = existingPath
+        self.tokenFoundCount  = len(self.existingPath)
+        self.onlyPerfectMatch = onlyPerfectMatch
+        self.ambiguous        = ambiguous
         
         #special case, the last token searched is in the existingPath but if it is not found, it does not count as a existing part of the path
-        if not isPathFound(existingPath):
+        if not self.isPathFound():
             self.tokenFoundCount -= 1
         
-        self.tokenNotFound = len(stringList) - self.tokenFoundCount
+        self.tokenNotFound = len(self.stringList) - self.tokenFoundCount
+
+
+    def isPathFound(self):
+        #TODO
+        """
+        
+        """
+        
+        return self.existingPath[-1][2] != None
+
+    def isValueFound(self):
+        """
+        This method returns True if a value corresponds to the explored path.
+        
+        @rtype: boolean
+        @return: True if a value corresponds to the explored path, False otherwise
+        """
+        
+        #return (len(stringList) == 0 and existingPath[0][1].valueSet) or (len(stringList) > 0 and existingPath[-1][2] != None and existingPath[-1][2].valueSet)
+        return self.existingPath[-1][2] != None and self.existingPath[-1][2].valueSet
+
+
+    def getMltFound(self):
+        #TODO
+        """
+        
+        """
+        
+        if not self.isValueFound() and not self.isPathFound():
+            raise noValueSetTriesException("No match on the path <"+" ".join(self.stringList)+">")
+            
+        return self.existingPath[-1][2]
+        
+    def getValue(self):
+        """
+        This method returns the value corresponding to the explored path if exists, otherwise an exception is raised
+        
+        @rtype: anything
+        @return: the value corresponding to the explored path
+        @raise noValueSetTriesException: if no value are stored on the explored path
+        """
+        
+        
+        if not self.isValueFound(self):
+            raise noValueSetTriesException("(searchNodeResult) getLastTokenFoundValue, no value found on this path")
+        
+    
+        return self.existingPath[-1][2].value
+    
+    ###
     
     def getFoundToken(self):
         """
@@ -735,7 +755,7 @@ class multiLevelTriesSearchResult(object):
         @return: the list of tokens found
         """
         
-        return stringList[:self.tokenFoundCount]
+        return self.stringList[:self.tokenFoundCount]
     
     def getFoundCompletePath(self):
         """
@@ -762,7 +782,7 @@ class multiLevelTriesSearchResult(object):
         @return: the list of tokens not found
         """
         
-        return stringList[:self.tokenFoundCount]
+        return self.stringList[:self.tokenFoundCount]
     
     def getTokenFoundCount(self):
         """
@@ -792,31 +812,29 @@ class multiLevelTriesSearchResult(object):
         @return: the count of token in the searched path
         """
         
-        return len(stringList)
+        return len(self.stringList)
     
-    def isValueFound(self):
+    def getTokenUsed(self):
         """
-        This method returns True if a value corresponds to the explored path.
+        This method returns the number of token used in the search process.
+        This is different of the token found in the tree.
         
-        @rtype: boolean
-        @return: True if a value corresponds to the explored path, False otherwise
-        """
-        
-        return self.existing
-    
-    def getValue(self):
-        """
-        This method returns the value corresponding to the explored path if exists, otherwise an exception is raised
-        
-        @rtype: anything
-        @return: the value corresponding to the explored path
-        @raise noValueSetTriesException: if no value are stored on the explored path
+        @rtype: integer
+        @return: the number of token used in the search process
         """
         
-        if not self.existing:
-            raise noValueSetTriesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value found on this path")
+        return len(self.existingPath)
         
-        return self.existingValue
+    def getTokenNotUsed(self):
+        """
+        This method returns the number of token not used in the search process. 
+        If the returned value is bigger than 0, the search process has not find a value
+        
+        @rtype: integer
+        @return: the number of token not used in the search process
+        """
+        
+        return len(self.stringList) - len(self.existingPath) 
     
     def isAvalueOnTheLastTokenFound(self):
         """
@@ -826,7 +844,7 @@ class multiLevelTriesSearchResult(object):
         @return: True if a value exists on the last token found, False otherwise
         """
         
-        return self.tokenFoundCount > 0 and existingPath[self.tokenFoundCount-1][2] != None and existingPath[self.tokenFoundCount-1][2].isValueSet()
+        return self.tokenFoundCount > 0 and self.existingPath[self.tokenFoundCount-1][2] != None and self.existingPath[self.tokenFoundCount-1][2].isValueSet()
     
     def getLastTokenFoundValue(self):
         """
@@ -841,7 +859,7 @@ class multiLevelTriesSearchResult(object):
         if not self.isAvalueOnTheLastTokenFound():
             raise noValueSetTriesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value on the last token found")
         
-        return existingPath[self.tokenFoundCount-1][1].value
+        return self.existingPath[self.tokenFoundCount-1][1].value
     
     def isAllTokenHasBeenConsumed(self):
         """
@@ -868,7 +886,7 @@ class multiLevelTriesSearchResult(object):
         @return: True is if the last explored tries was empty, False otherwise
         """
         
-        return existingPath[-1][1].localTries.isEmpty()
+        return self.existingPath[-1][1].localTries.isEmpty()
     
     #
     # the last token searched was not found in the 
@@ -883,7 +901,7 @@ class multiLevelTriesSearchResult(object):
         @return: True if the last token searched was not found, False otherwise
         """
         
-        return not isPathFound(self.existingPath) and not self.existing 
+        return not self.isPathFound()# and not self.existing
     #
     # the path has been completly found be there is no value attached to this path
     #
@@ -895,8 +913,18 @@ class multiLevelTriesSearchResult(object):
         @return: True if the path exists and there is no value in the last node, False otherwise
         """
         
-        return isPathFound(self.existingPath) and not self.existing
+        return self.isPathFound() and not self.isValueFound()
         #return self.pathExistButNoValue
+    
+    def isPerfectSearchSet(self):
+        """
+        This method return True is the search was started with the boolean PerfectSearch set to True, otherwise it returns False
+        
+        @rtype: boolean
+        @return: True is PerfectSearch was set during the search, False otherwise
+        """
+        
+        return self.onlyPerfectMatch
     
     def isAmbiguous(self):
         """
@@ -909,26 +937,41 @@ class multiLevelTriesSearchResult(object):
     
     
     def getAdvancedTriesResult(self, tokenIndex):
+        """
+        This method returns the advanced result of any used token into its corresponding tries.
+        This method does not work with empty path.  
+        
+        @type tokenIndex: integer
+        @param tokenIndex: the index of the token to retrieve
+        @rtype: triesSearchResult
+        @return: the search result corresponding to specified used token
+        """
+        
         #is empty path?
         if len(self.stringList) == 0:
-            pass #TODO raise
+            raise triesException("need at least one string token, there is no token on empty path")
         
-        #TODO index is valid ?
+        #index is valid ?
         if len(self.existingPath) < tokenIndex or tokenIndex < 0:
-            pass #TODO raise
+            if self.getTokenUsed() > 1:
+                raise triesException("invalid index, the available index are [0-"+str(self.getTokenUsed()-1)+"]")
+            else:
+                raise triesException("invalid index, the only available index is 0")
         
+        #create advanced tries result
+        advancedTriesResult = self.existingPath[tokenIndex][1].localTries.advancedSearch(self.existingPath[tokenIndex][0])
         
-        
-        #TODO create the advanced search
-            #take care of empty result and empty path
-                
-        pass #TODO
+        #return the whole result
+        return advancedTriesResult
         
     def getAdvancedTriesResultForLastTokenExplored(self):
-        #TODO find the last explored token
+        """
+        This method returns the advanced result of the last used token into its corresponding tries.
+        This method does not work with empty path.  
         
-        #TODO create the advanced search
-            #take care of empty result and empty path
+        @rtype: triesSearchResult
+        @return: the search result corresponding to the last used token
+        """
         
-        pass #TODO
+        return self.getAdvancedTriesResult(len(self.existingPath) - 1)
     
