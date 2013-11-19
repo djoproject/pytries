@@ -6,6 +6,9 @@ from tries import multiLevelTries
 from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
 #TODO
+    #XXX corriger les algo de buildDictionnary
+        #ça doit donner le meme resultat avec les deux traversal
+
     #XXX TEST
         #setStopTraversal on no value and value node
         #removeBranch
@@ -82,7 +85,8 @@ class TraversalTest(unittest.TestCase):
     #every inserted stringList are in the tree
     def test_everyKeyInTheTree(self):
         for k,v in self.keyValue.iteritems():
-            self.assertTrue( self.mlt.search(k) == v)
+            mlt = self.mlt.search(k)
+            self.assertTrue(mlt != None and mlt.value == v)
     
     
     def _inner_test_everyValueCorrespondToAKey(self, path, node, state, level):
@@ -111,7 +115,8 @@ class TraversalTest(unittest.TestCase):
     
     #search a non existing path
     def test_tryToSearchANonExistingPath(self):
-        self.assertRaises(triesException,self.mlt.search,["z"])
+        #self.assertRaises(triesException,self.mlt.search,["z"])
+        self.assertTrue(self.mlt.search(["z"]) == None)
 
     def _inner_test_traversal(self, currentPath, node, traversalState, level):
         #check if it the path has already been met
@@ -231,7 +236,7 @@ class TraversalTest(unittest.TestCase):
         #one key prefix
         for key in self.mltlist:
             dico = self.mlt.buildDictionnary( (key,) , False, True)
-            #print key, len(dico), expectedValueCount
+            print key, len(dico), expectedValueCount
             self.assertTrue( len(dico) == expectedValueCount)
 
             for k,v in dico.iteritems():
@@ -256,6 +261,7 @@ class TraversalTest(unittest.TestCase):
         #one key prefix
         for key in self.mltlist:
             dico = self.mlt.buildDictionnary( (key,) , False, False)
+            print key, len(dico), expectedValueCount
             self.assertTrue( len(dico) == expectedValueCount)
             
             for k,v in dico.iteritems():
@@ -289,7 +295,9 @@ class TraversalTest(unittest.TestCase):
             newKeyVal[k] = newVal
     
         for k,v in newKeyVal.iteritems():
-            self.assertTrue( self.mlt.search(k) == v)
+            mlt = self.mlt.search(k)
+            self.assertTrue(mlt != None and mlt.value == v)
+            #self.assertTrue( self.mlt.search(k) == v)
 
 
 #### remove test

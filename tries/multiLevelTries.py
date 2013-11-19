@@ -672,6 +672,7 @@ class multiLevelTries(object):
         """
         
         return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
+        #return self.genericBreadthFirstTraversal(self._inner_buildDictionnary, {}, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
 
 
 class multiLevelTriesSearchResult(object):
