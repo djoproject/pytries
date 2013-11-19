@@ -23,6 +23,10 @@ class triesException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class valueNotFoundTriesException(triesException):
+    def __init__(self,value):
+        triesException.__init__(self, value)
+
 class pathNotExistsTriesException(triesException):
     def __init__(self,value):
         triesException.__init__(self, value)

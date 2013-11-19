@@ -5,6 +5,19 @@ import unittest
 from tries import multiLevelTries
 from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
+#TODO
+    #XXX TEST
+        #setStopTraversal on no value and value node
+        #removeBranch
+        #advanced search and also ambiguousPathExceptionWithLevel
+        #update test on search
+            #no it return mltries and not value
+        #move
+        #empty path
+            #every methods
+        #traversal
+            #with the node level
+
 def buildList(minSize, maxSize, charset):
     ret = []
     for l in range(minSize, maxSize+1):

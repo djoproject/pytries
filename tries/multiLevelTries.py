@@ -16,21 +16,8 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#TODO
-    #XXX TEST
-        #setStopTraversal on no value and value node
-        #removeBranch
-        #advanced search and also ambiguousPathExceptionWithLevel
-        #update test on search
-            #no it return mltries and not value
-        #move
-        #empty path
-            #every methods
-        #traversal
-            #with the node level
-        
 from tries import *
-from exception import triesException,pathExistsTriesException, pathNotExistsTriesException, noValueSetTriesException,ambiguousPathException, ambiguousPathExceptionWithLevel
+from exception import *
 
 
 class multiLevelTries(object):
@@ -96,7 +83,7 @@ class multiLevelTries(object):
         """
         
         if not self.valueSet:
-            raise noValueSetTriesException("this node does not contain any value")
+            raise noValueSetTriesException("(multiLevelTries) getValue, this node does not contain any value")
             
         return self.value
         
@@ -192,7 +179,7 @@ class multiLevelTries(object):
         searchResult = self.searchNode(stringList, True)
         
         if not searchResult.isPathFound():
-            raise pathNotExistsTriesException("(multiLevelTries) remove, The branch <"+" ".join(stringList)+"> does not exist in the multi tries")
+            raise pathNotExistsTriesException("(multiLevelTries) removeBranch, The branch <"+" ".join(stringList)+"> does not exist in the multi tries")
         
         #reset the tries
         searchResult.getMltFound().localTries = tries()
@@ -208,6 +195,7 @@ class multiLevelTries(object):
         
         @type stringList: string list
         @param stringList: the string path to remove in the multi level tries
+        @raise pathNotExistsTriesException: if the there is no value associated to the path
         """
         
         #search for a similar existing stringList in the tree (we want a perfect match)
@@ -215,7 +203,7 @@ class multiLevelTries(object):
         
         #raise an exception if the path does not exist
         if not searchResult.isValueFound():
-            raise pathNotExistsTriesException("(multiLevelTries) remove, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            raise pathNotExistsTriesException("(multiLevelTries) remove, The path <"+" ".join(stringList)+"> is not found or not associated to a value")
         
         self._remove(searchResult)
         
@@ -236,7 +224,7 @@ class multiLevelTries(object):
         
         #raise an exception if the path does not exist
         if not searchResult.isValueFound():
-            raise pathNotExistsTriesException("(multiLevelTries) update, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            raise pathNotExistsTriesException("(multiLevelTries) update, The path <"+" ".join(stringList)+"> is not found or not associated to a value")
         
         #set the new value (the last node of the path contains a tries with an empty key tries, this node have to be updated)
         existingMlt = searchResult.getMltFound()
@@ -264,7 +252,7 @@ class multiLevelTries(object):
         
         #raise an exception if the path does not exist
         if not searchResult.isValueFound():
-            raise pathNotExistsTriesException("(multiLevelTries) move, The path <"+" ".join(oldStringList)+"> does not exist in the multi tries")
+            raise pathNotExistsTriesException("(multiLevelTries) move, The path <"+" ".join(oldStringList)+"> is not found or not associated to a value")
         
         existingMlt = searchResult.getMltFound()
         existingValue = existingMlt.value
@@ -278,7 +266,6 @@ class multiLevelTries(object):
         return newNode
         
 ############ SEARCH FUNCTION #########################################################################################################################################################################
-    
     
     
     def searchNode(self, stringList, onlyPerfectMatch=True):
@@ -387,6 +374,7 @@ class multiLevelTries(object):
         @param onlyPerfectMatch: if this param is set to True, only the perfect matching will be accepted in the search algorithm
         @rtype: multiLevelTriesSearchResult
         @return: the details result of the search inside an instance of multiLevelTriesSearchResult
+        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
         #make the search and fill a result object
@@ -429,14 +417,26 @@ class multiLevelTries(object):
         searchResult.getMltFound().stopTraversal = state
         return searchResult.getMltFound()
     
+    def _traversalWithPrefix(self, level, currentPath, current):
+        prefixPath, subMeth, innerState = currentPath
+        
+        #build complete path
+        newPath = prefixPath[:]
+        newPath.extend(currentPath)
+    
+        #call submethod
+        newState = subMeth(level, tuple(newPath),current)
+        
+        #return state
+        return prefixPath,subMeth,newState
+    
     
     def _exploreNextTries(self, level, currentPath, current):
         currentPath.append("")
         current.value.localTries.MTParent = current
         return level+1, current.value.localTries
     
-    
-    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False):
+    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(,), includePrexix=False):
         """
         This function executes a depth first traversal on the multi level tries.
         
@@ -448,8 +448,16 @@ class multiLevelTries(object):
         @param preOrder: True means preorder, False means postorder
         @type ignoreStopTraversal: boolean
         @param ignoreStopTraversal: if set to True, the exploration process will stop on the node with stopTraversal set to True
+        @type onlyPerfectMatch: boolean
+        @param onlyPerfectMatch: if this param is set to True, only the perfect matching will be accepted in the search algorithm
+        @type prefix: string list
+        @param prefix: the list of the prefix to traverse, only the node corresponding to the prefix and its child will be explored
+        @type includePrexix: boolean
+        @param includePrexix: if set to True, the prefix will be included in the path given to the method executeOnNode, if False, only the path from the prefix will be given
         @rtype: anything
         @return: the last state
+        @raise pathNotExistsTriesException: if prefix is set to an unexistant path in the tree
+        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         @attention: this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
         """
         
@@ -457,10 +465,28 @@ class multiLevelTries(object):
         currentPath    = [""]            #string list of the current path
         traversalState = initState       #the evolution of the state variable
         level          = 1               #the level of the current node
-         
+        methToExecute  = executeOnNode   #
+        originMltNode  = self            #
+        
+        #manage traversal with prefix
+        if len(prefix) > 0:
+            #search for the node
+            searchResult = self.searchNode(stringList, onlyPerfectMatch)
+            
+            #path exist ?
+            if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
+                raise pathNotExistsTriesException("(multiLevelTries) genericDepthFirstTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            
+            originMltNode = searchResult
+            
+            #include the prefix ?
+            if includePrexix:
+                traversalState = (searchResult.getFoundCompletePath(),executeOnNode,initState,)
+                methToExecute  = originMltNode._traversalWithPrefix
+        
         #explore empty path preOrder
         if preOrder:
-            traversalState = executeOnNode([], self, traversalState, 0)
+            traversalState = methToExecute([], self, traversalState, 0)
          
         while current != None:
             #print currentPath, current
@@ -472,11 +498,11 @@ class multiLevelTries(object):
                 #pre order processing
                 if preOrder and current.isValueSet():
                     #traverse the node
-                    traversalState = executeOnNode(currentPath, current.value, traversalState, level)
+                    traversalState = methToExecute(currentPath, current.value, traversalState, level)
                     
                     #traverse the tries store in the node
                     if not current.value.localTries.isEmpty() and (ignoreStopTraversal or not current.value.stopTraversal):
-                        level, current = self._exploreNextTries(level, currentPath, current)
+                        level, current = originMltNode._exploreNextTries(level, currentPath, current)
                         continue
             else:
                 #remove the reference about the traversal
@@ -509,10 +535,10 @@ class multiLevelTries(object):
                     if "MTParent" in current.value.localTries.__dict__.keys():
                         del current.value.localTries.MTParent
                     else:
-                        level, current = self._exploreNextTries(level, currentPath, current)
+                        level, current = originMltNode._exploreNextTries(level, currentPath, current)
                         continue
                         
-                traversalState = executeOnNode(currentPath, current.value, traversalState, level)
+                traversalState = methToExecute(currentPath, current.value, traversalState, level)
         ### end of the node process ###
             #remove the key string of the current node from the path
             if len(current.key) > 0:
@@ -533,13 +559,12 @@ class multiLevelTries(object):
         
         #explore empty path postOrder
         if not preOrder:
-            return executeOnNode([], self, traversalState, 0)
+            return methToExecute([], originMltNode, traversalState, 0)
         
         ### return the final state
         return traversalState
-    
-    
-    def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False): 
+
+    def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(,), includePrexix=False): 
         """
         This function executes a breadth first traversal on the multi level tries.
         
@@ -549,19 +574,42 @@ class multiLevelTries(object):
         @param initState: this is the initial value of the traversal state
         @type ignoreStopTraversal: boolean
         @param ignoreStopTraversal: if set to True, the exploration process will stop on the node with stopTraversal set to True
+        @type onlyPerfectMatch: boolean
+        @param onlyPerfectMatch: if this param is set to True, only the perfect matching will be accepted in the search algorithm
+        @type prefix: string list
+        @param prefix: the list of the prefix to traverse, only the node corresponding to the prefix and its child will be explored
+        @type includePrexix: boolean
+        @param includePrexix: if set to True, the prefix will be included in the path given to the method executeOnNode, if False, only the path from the prefix will be given
         @rtype: anything
         @return: the last state
+        @raise pathNotExistsTriesException: if prefix is set to an unexistant path in the tree
+        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         @see: http://en.wikipedia.org/wiki/Breadth-first_search
         """
         
-        Queue          = []
+        startingNode = self
         traversalState = initState
-        
+        if len(prefix) > 0:
+            #search for the node
+            searchResult = self.searchNode(stringList, onlyPerfectMatch)
+            
+            #path exist ?
+            if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
+                raise pathNotExistsTriesException("(multiLevelTries) genericBreadthFirstTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            
+            startingNode = searchResult.getMltFound()
+            
+            #include the prefix ?
+            if includePrexix:
+                traversalState = (searchResult.getFoundCompletePath(),executeOnNode,initState,)
+
+
+        Queue          = []
         #init the Queue with every key value of the first level tries
         #keyValue = self.localTries.getKeyValue()
         #for k,v in keyValue.iteritems():
         #    Queue.append( (v, 0, [k],))
-        Queue.append( (self, 0, [],))
+        Queue.append( (startingNode, 0, [],))
         
         #read the queue
         while len(Queue) > 0:
@@ -602,27 +650,9 @@ class multiLevelTries(object):
         
         state[tuple(path)] = node.value
         return state
+
     
-    
-    def _inner_buildDictionnaryWithPath(self, path, node, state, level):
-        path
-        if not node.isValueSet():
-            return state
-        
-        prefixPath, dico = state
-        newPath = prefixPath[:]
-        newPath.extend(path)
-        
-        dico[tuple(newPath)] = node.value
-        
-        return prefixPath, dico
-    
-    
-    #
-    # return a dictionnary of every key/value in the tree
-    #
-    #
-    def buildDictionnary(self, stringList = (), ignoreStopTraversal=False, addPrexix= False):
+    def buildDictionnary(self, stringList = (), ignoreStopTraversal=False, addPrexix= False, onlyPerfectMatch=True):
         """
         This function built a dictionnary with every path/value existing in the tree.  
         
@@ -632,34 +662,14 @@ class multiLevelTries(object):
         @param ignoreStopTraversal: if set to True, the exploration process will stop on the node with stopTraversal set to True
         @type addPrexix: boolean
         @param addPrexix: if set to True, the prefix set in stringList will be concat to every path
+        @type onlyPerfectMatch: boolean
+        @param onlyPerfectMatch: if this param is set to True, only the perfect matching will be accepted in the search algorithm
         @rtype: dictionary
         @return: a dictionnary with every path/value existing in the tree
+        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
-        #find the starting node if needed
-        startingPoint = self
-        prefix = []
-        if len(stringList) > 0:
-            searchResult = self.searchNode(stringList, True)
-            
-            #raise an exception if the path does not exist
-            if not searchResult.isPathFound():
-                raise pathNotExistsTriesException("(multiLevelTries) buildDictionnary, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
-            
-            startingPoint = searchResult.getMltFound()
-            
-            #build prefix
-            prefix = []
-            if addPrexix:
-                for string, parentMLT, valueMLT, triesNode in searchResult.existingPath:
-                    prefix.append(triesNode.getCompleteName())
-        
-            if len(prefix) > 0:
-                return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnaryWithPath, (prefix,{}), True, ignoreStopTraversal)[1]
-        
-        #start the search
-        return startingPoint.genericDepthFirstTraversal(startingPoint._inner_buildDictionnary, {}, True, ignoreStopTraversal)        
-
+        return self.genericDepthFirstTraversalWithPrefix(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
 
 
 class multiLevelTriesSearchResult(object):
@@ -730,11 +740,11 @@ class multiLevelTriesSearchResult(object):
         
         @rtype: multiLevelTries
         @return: the multi level tries node corresponding to the path
-        @raise noValueSetTriesException: if there is not multi level tries node corresponding to the path
+        @raise pathNotExistsTriesException: if there is no multi level tries node corresponding to the path
         """
         
         if not self.isValueFound() and not self.isPathFound():
-            raise noValueSetTriesException("No match on the path <"+" ".join(self.stringList)+">")
+            raise pathNotExistsTriesException("(multiLevelTriesSearchResult) getMltFound, No match on the path <"+" ".join(self.stringList)+">")
             
         return self.existingPath[-1][2]
         
@@ -749,13 +759,9 @@ class multiLevelTriesSearchResult(object):
         
         
         if not self.isValueFound(self):
-            raise noValueSetTriesException("(searchNodeResult) getLastTokenFoundValue, no value found on this path")
+            raise noValueSetTriesException("(multiLevelTriesSearchResult) getValue, no value found on this path")
         
-    
         return self.existingPath[-1][2].value
-    
-    ###
-    
     
     def getFoundToken(self):
         """
@@ -971,18 +977,19 @@ class multiLevelTriesSearchResult(object):
         @param tokenIndex: the index of the token to retrieve
         @rtype: triesSearchResult
         @return: the search result corresponding to specified used token
+        @raise triesException: if the search was made with a n empty string or if tokenIndex is invalid
         """
         
         #is empty path?
         if len(self.stringList) == 0:
-            raise triesException("need at least one string token, there is no token on empty path")
+            raise triesException("(multiLevelTriesSearchResult) getAdvancedTriesResult, need at least one string token, there is no token on empty path")
         
         #index is valid ?
         if len(self.existingPath) < tokenIndex or tokenIndex < 0:
             if self.getTokenUsed() > 1:
-                raise triesException("invalid index, the available index are [0-"+str(self.getTokenUsed()-1)+"]")
+                raise triesException("(multiLevelTriesSearchResult) getAdvancedTriesResult, invalid index, the available index are [0-"+str(self.getTokenUsed()-1)+"]")
             else:
-                raise triesException("invalid index, the only available index is 0")
+                raise triesException("(multiLevelTriesSearchResult) getAdvancedTriesResult, invalid index, the only available index is 0")
         
         #create advanced tries result
         advancedTriesResult = self.existingPath[tokenIndex][1].localTries.advancedSearch(self.existingPath[tokenIndex][0])
