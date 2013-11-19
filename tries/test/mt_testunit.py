@@ -132,7 +132,7 @@ class TraversalTest(unittest.TestCase):
             newCount += 1
         
         #check level
-        self.assertTrue(len(currentPath) == level+1)
+        self.assertTrue(len(currentPath) == level)
                     
         return (traversalState[0],traversalState[1],newCount,)
 

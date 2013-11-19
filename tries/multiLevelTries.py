@@ -142,7 +142,7 @@ class multiLevelTries(object):
         return currentMLTriesWhereInsert
     
     
-    def _remove(searchResult):
+    def _remove(self, searchResult):
         #unset value
         searchResult.getMltFound().unsetValue()
         
@@ -417,15 +417,17 @@ class multiLevelTries(object):
         searchResult.getMltFound().stopTraversal = state
         return searchResult.getMltFound()
     
-    def _traversalWithPrefix(self, level, currentPath, current):
-        prefixPath, subMeth, innerState = currentPath
+    
+    #def _traversalWithPrefix(self, currentPath, current, level):
+    def _traversalWithPrefix(self, path, node, state, level):
+        prefixPath, subMeth, innerState = state
         
         #build complete path
         newPath = prefixPath[:]
-        newPath.extend(currentPath)
+        newPath.extend(path)
     
         #call submethod
-        newState = subMeth(level, tuple(newPath),current)
+        newState = subMeth(newPath, node, innerState, level)
         
         #return state
         return prefixPath,subMeth,newState
@@ -436,7 +438,7 @@ class multiLevelTries(object):
         current.value.localTries.MTParent = current
         return level+1, current.value.localTries
     
-    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(,), includePrexix=False):
+    def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(), includePrexix=False):
         """
         This function executes a depth first traversal on the multi level tries.
         
@@ -471,13 +473,13 @@ class multiLevelTries(object):
         #manage traversal with prefix
         if len(prefix) > 0:
             #search for the node
-            searchResult = self.searchNode(stringList, onlyPerfectMatch)
+            searchResult = self.searchNode(prefix, onlyPerfectMatch)
             
             #path exist ?
-            if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
-                raise pathNotExistsTriesException("(multiLevelTries) genericDepthFirstTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            if not searchResult.isPathFound(): #len(existingPath) < len(prefix) or 
+                raise pathNotExistsTriesException("(multiLevelTries) genericDepthFirstTraversal, The path <"+" ".join(prefix)+"> does not exist in the multi tries")
             
-            originMltNode = searchResult
+            originMltNode = searchResult.getMltFound()
             
             #include the prefix ?
             if includePrexix:
@@ -492,7 +494,7 @@ class multiLevelTries(object):
             #print currentPath, current
         ### traverse the node AND pre order process ###
             if "traversed" not in current.__dict__.keys(): #execute this statement only once
-                currentPath[level] += current.key #update the current part of the key path
+                currentPath[level-1] += current.key #update the current part of the key path
                 current.traversed = True #set the node as traversed ONCE
                 
                 #pre order processing
@@ -542,7 +544,7 @@ class multiLevelTries(object):
         ### end of the node process ###
             #remove the key string of the current node from the path
             if len(current.key) > 0:
-                currentPath[level] = currentPath[level][:-len(current.key)]
+                currentPath[level-1] = currentPath[level-1][:-len(current.key)]
             
             #back to the parent
             del current.traversed
@@ -564,7 +566,7 @@ class multiLevelTries(object):
         ### return the final state
         return traversalState
 
-    def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(,), includePrexix=False): 
+    def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(), includePrexix=False): 
         """
         This function executes a breadth first traversal on the multi level tries.
         
@@ -591,11 +593,11 @@ class multiLevelTries(object):
         traversalState = initState
         if len(prefix) > 0:
             #search for the node
-            searchResult = self.searchNode(stringList, onlyPerfectMatch)
+            searchResult = self.searchNode(prefix, onlyPerfectMatch)
             
             #path exist ?
-            if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
-                raise pathNotExistsTriesException("(multiLevelTries) genericBreadthFirstTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+            if not searchResult.isPathFound(): #len(existingPath) < len(prefix) or 
+                raise pathNotExistsTriesException("(multiLevelTries) genericBreadthFirstTraversal, The path <"+" ".join(prefix)+"> does not exist in the multi tries")
             
             startingNode = searchResult.getMltFound()
             
@@ -669,7 +671,7 @@ class multiLevelTries(object):
         @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
-        return self.genericDepthFirstTraversalWithPrefix(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
+        return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
 
 
 class multiLevelTriesSearchResult(object):
