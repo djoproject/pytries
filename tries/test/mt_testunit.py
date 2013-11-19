@@ -6,9 +6,6 @@ from tries import multiLevelTries
 from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
 #TODO
-    #XXX corriger les algo de buildDictionnary
-        #ça doit donner le meme resultat avec les deux traversal
-
     #XXX TEST
         #setStopTraversal on no value and value node
         #removeBranch
@@ -231,19 +228,25 @@ class TraversalTest(unittest.TestCase):
             self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
 
     def test_buildDictWithPrefix(self):
-        expectedValueCount = len(self.mltlist)**2 + len(self.mltlist)
+        expectedValueCount = len(self.mltlist)**2 + len(self.mltlist) + 1
         
         #one key prefix
         for key in self.mltlist:
             dico = self.mlt.buildDictionnary( (key,) , False, True)
-            print key, len(dico), expectedValueCount
+            #print key, len(dico), expectedValueCount
+            
+            #i = 0
+            #for k,v in dico.iteritems():
+            #    print i, k
+            #    i+=1
+            
             self.assertTrue( len(dico) == expectedValueCount)
 
             for k,v in dico.iteritems():
                 self.assertTrue(len(k) > 0 and k[0] == key)
                 self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
         
-        expectedValueCount = len(self.mltlist)
+        expectedValueCount = len(self.mltlist) + 1
         #two key prefix
         for key1 in self.mltlist:
             for key2 in self.mltlist:
@@ -256,12 +259,12 @@ class TraversalTest(unittest.TestCase):
                     self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
 
     def test_buildDictWithPrefixNotIncludedInTheResult(self):
-        expectedValueCount = len(self.mltlist)**2 + len(self.mltlist)
+        expectedValueCount = len(self.mltlist)**2 + len(self.mltlist) + 1
         
         #one key prefix
         for key in self.mltlist:
             dico = self.mlt.buildDictionnary( (key,) , False, False)
-            print key, len(dico), expectedValueCount
+            #print key, len(dico), expectedValueCount
             self.assertTrue( len(dico) == expectedValueCount)
             
             for k,v in dico.iteritems():
@@ -271,7 +274,7 @@ class TraversalTest(unittest.TestCase):
                 keys = tuple(keys)
                 self.assertTrue(keys in self.keyValue and self.keyValue[keys] == v)
         
-        expectedValueCount = len(self.mltlist)
+        expectedValueCount = len(self.mltlist) + 1
         #two key prefix
         for key1 in self.mltlist:
             for key2 in self.mltlist:

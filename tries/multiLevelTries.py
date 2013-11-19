@@ -19,6 +19,8 @@
 from tries import *
 from exception import *
 
+#TODO XXX
+    #add a warning in the two traversal doc to signal it the presence of the empty path
 
 class multiLevelTries(object):
     """
@@ -438,6 +440,7 @@ class multiLevelTries(object):
         current.value.localTries.MTParent = current
         return level+1, current.value.localTries
     
+    
     def genericDepthFirstTraversal(self,executeOnNode, initState = None, preOrder = True, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(), includePrexix=False):
         """
         This function executes a depth first traversal on the multi level tries.
@@ -463,7 +466,6 @@ class multiLevelTries(object):
         @attention: this graph works with node colouring, so the variable traversed and traversal_index can't be used outside of this function
         """
         
-        current        = self.localTries #current is always a tries, never a mltries
         currentPath    = [""]            #string list of the current path
         traversalState = initState       #the evolution of the state variable
         level          = 1               #the level of the current node
@@ -486,9 +488,11 @@ class multiLevelTries(object):
                 traversalState = (searchResult.getFoundCompletePath(),executeOnNode,initState,)
                 methToExecute  = originMltNode._traversalWithPrefix
         
+        current = originMltNode.localTries #current is always a tries, never a mltries
+        
         #explore empty path preOrder
         if preOrder:
-            traversalState = methToExecute([], self, traversalState, 0)
+            traversalState = methToExecute([], originMltNode, traversalState, 0)
          
         while current != None:
             #print currentPath, current
@@ -561,11 +565,14 @@ class multiLevelTries(object):
         
         #explore empty path postOrder
         if not preOrder:
-            return methToExecute([], originMltNode, traversalState, 0)
+            traversalState = methToExecute([], originMltNode, traversalState, 0)
         
+        if len(prefix) > 0 and includePrexix:
+            return traversalState[2]
+            
         ### return the final state
         return traversalState
-
+    
     def genericBreadthFirstTraversal(self, executeOnNode, initState = None, ignoreStopTraversal = False, onlyPerfectMatch=True, prefix=(), includePrexix=False): 
         """
         This function executes a breadth first traversal on the multi level tries.
@@ -589,8 +596,10 @@ class multiLevelTries(object):
         @see: http://en.wikipedia.org/wiki/Breadth-first_search
         """
         
-        startingNode = self
+        startingNode   = self
         traversalState = initState
+        methToExecute  = executeOnNode
+        Queue = []
         if len(prefix) > 0:
             #search for the node
             searchResult = self.searchNode(prefix, onlyPerfectMatch)
@@ -604,9 +613,9 @@ class multiLevelTries(object):
             #include the prefix ?
             if includePrexix:
                 traversalState = (searchResult.getFoundCompletePath(),executeOnNode,initState,)
-
-
-        Queue          = []
+                methToExecute  = startingNode._traversalWithPrefix
+        
+        
         #init the Queue with every key value of the first level tries
         #keyValue = self.localTries.getKeyValue()
         #for k,v in keyValue.iteritems():
@@ -628,7 +637,11 @@ class multiLevelTries(object):
                     Queue.append( (v, level+1, newPath,))       
             
             #read value node with value
-            traversalState = executeOnNode(currentPath, current, traversalState, level)
+            traversalState = methToExecute(currentPath, current, traversalState, level)
+        
+        if len(prefix) > 0 and includePrexix:
+            return traversalState[2]    
+        
         return traversalState
     
     
@@ -647,6 +660,7 @@ class multiLevelTries(object):
     
     
     def _inner_buildDictionnary(self, path, node, state, level):
+        #print path
         if not node.isValueSet():
             return state
         
@@ -671,8 +685,8 @@ class multiLevelTries(object):
         @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
-        return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
-        #return self.genericBreadthFirstTraversal(self._inner_buildDictionnary, {}, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
+        #return self.genericDepthFirstTraversal(self._inner_buildDictionnary, {}, True, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
+        return self.genericBreadthFirstTraversal(self._inner_buildDictionnary, {}, ignoreStopTraversal,onlyPerfectMatch, stringList, addPrexix)
 
 
 class multiLevelTriesSearchResult(object):
@@ -790,7 +804,7 @@ class multiLevelTriesSearchResult(object):
             if triesNode == None:
                 break
         
-            ret.append(triesNode.getCompleteName)
+            ret.append(triesNode.getCompleteName())
         
         return ret
     
