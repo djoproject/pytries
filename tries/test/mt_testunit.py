@@ -70,7 +70,7 @@ class mltriesTest(unittest.TestCase):
 ### basics
 
     #every inserted stringList are in the tree
-    def test_everyKeyInTheTree(self):
+    """def test_everyKeyInTheTree(self):
         for k,v in self.keyValue.iteritems():
             mlt = self.mlt.search(k)
             if mlt == None:
@@ -473,7 +473,103 @@ class mltriesTest(unittest.TestCase):
         
         #check the tree
         self.test_everyKeyInTheTree()
-        self.test_everyValueCorrespondToAKey()
+        self.test_everyValueCorrespondToAKey()"""
+
+### advanced search
+    #TODO test on several level
+    
+    def test_AdvancedSearchCaseNoMatch(self):
+        mltnode = self.mlt.advancedSearch(("k",))
+        
+        mltnode = self.mlt.advancedSearch(("a","k",))
+        
+        mltnode = self.mlt.advancedSearch(("a","b","k",))
+        
+        #TODO
+        
+    def test_AdvancedSearchCasePathMatch(self):
+        pass #TODO
+        
+    def test_AdvancedSearchCaseAmbiguous(self):
+        pass #TODO
+        
+    def test_AdvancedSearchCaseFound(self):
+        pass #TODO
+
+### move test        
+    def test_moveFrom0to1(self):
+        mlt = multiLevelTries()
+        mlt.insert((),"a")
+        
+        #try to move to an existent place (destination unexistant)
+        mlt.insert(("b",),"a")
+        self.assertRaises(pathExistsTriesException, mlt.move,(),("b",))
+        
+        #try to move from a unexistent place (source empty)
+        self.assertRaises(pathNotExistsTriesException, mlt.move,("c",),())
+        
+        mlt.move((),("a",))
+        
+        mltnode = mlt.search()
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search(("a",))
+        self.assertTrue(mltnode != None and mltnode.value == "a")
+
+    def test_moveFrom1to0(self):
+        mlt = multiLevelTries()
+        mlt.insert(("a",),"a")
+        mlt.move(("a",), ())
+        
+        mltnode = mlt.search(("a",))
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search()
+        self.assertTrue(mltnode != None and mltnode.value == "a")
+
+    def test_moveFrom1to2(self):
+        mlt = multiLevelTries()
+        mlt.insert(("a",),"a")
+        mlt.move(("a",), ("a","a",))
+        
+        mltnode = mlt.search(("a",))
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search(("a","a",))
+        self.assertTrue(mltnode != None and mltnode.value == "a")
+        
+    def test_moveFrom2to1(self):
+        mlt = multiLevelTries()
+        mlt.insert(("a","a",),"a")
+        mlt.move(("a","a",), ("a",))
+        
+        mltnode = mlt.search(("a","a",))
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search(("a",))
+        self.assertTrue(mltnode != None and mltnode.value == "a")
+        
+    def test_moveFrom0to2(self):
+        mlt = multiLevelTries()
+        mlt.insert((),"a")
+        mlt.move((),("a","a",))
+        
+        mltnode = mlt.search()
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search(("a","a",))
+        self.assertTrue(mltnode != None and mltnode.value == "a")
+
+    def test_moveFrom2to0(self):
+        mlt = multiLevelTries()
+        mlt.insert(("a","a",),"a")
+        mlt.move(("a","a",), ())
+        
+        mltnode = mlt.search(("a","a",))
+        self.assertTrue(mltnode == None)
+        
+        mltnode = mlt.search()
+        self.assertTrue(mltnode != None and mltnode.value == "a")
 
 ### TODO move
     #test move, from a unexisten to an existent, from an existent to an unexistent, from existent to existent, ...

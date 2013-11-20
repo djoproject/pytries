@@ -266,10 +266,9 @@ class multiLevelTries(object):
             raise pathNotExistsTriesException("(multiLevelTries) move, The path <"+" ".join(oldStringList)+"> is not found or not associated to a value")
         
         existingMlt = searchResult.getMltFound()
-        existingValue = existingMlt.value
         
         #insert the new one
-        newNode = self.insert(newStringList, existingValue,existingMlt.stopTraversal,anyStringSuffix)
+        newNode = self.insert(newStringList, existingMlt.value,existingMlt.stopTraversal,anyStringSuffix)
         
         #remove the old
         self.remove(oldStringList)
