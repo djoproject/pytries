@@ -5,18 +5,6 @@ import unittest
 from tries import multiLevelTries
 from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
 
-#TODO
-    #XXX TEST
-        #setStopTraversal on no value and value node
-        #removeBranch
-        #advanced search and also ambiguousPathExceptionWithLevel
-        #update test on search
-            #no it return mltries and not value
-        #move
-        #empty path
-            #every methods
-        #traversal
-            #with the node level
 
 def buildList(minSize, maxSize, charset):
     ret = []
@@ -64,7 +52,7 @@ def buildMultiList(minSize, maxSize, listOrigin):
 
     return ret
     
-class TraversalTest(unittest.TestCase):
+class mltriesTest(unittest.TestCase):
     
     def setUp(self):
         self.mlt           = multiLevelTries()
@@ -78,11 +66,15 @@ class TraversalTest(unittest.TestCase):
             string = "".join(v)
             self.keyValue[tv] = string
             self.mlt.insert(tv,string)        
- 
+
+### basics
+
     #every inserted stringList are in the tree
     def test_everyKeyInTheTree(self):
         for k,v in self.keyValue.iteritems():
             mlt = self.mlt.search(k)
+            if mlt == None:
+                print "missing key <",k,">"
             self.assertTrue(mlt != None and mlt.value == v)
     
     
@@ -114,6 +106,8 @@ class TraversalTest(unittest.TestCase):
     def test_tryToSearchANonExistingPath(self):
         #self.assertRaises(triesException,self.mlt.search,["z"])
         self.assertTrue(self.mlt.search(["z"]) == None)
+
+### traversal
 
     def _inner_test_traversal(self, currentPath, node, traversalState, level):
         #check if it the path has already been met
@@ -182,7 +176,7 @@ class TraversalTest(unittest.TestCase):
             self.mlt.setStopTraversal((key,),True)  
         
         self.assertTrue( self.mlt.genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))[2] == len(self.mltlist))
-###
+
     def test_preOrderTraversalWithStopTraversalLayer2(self):
         #update stopTraversal on node
         for key1 in self.mltlist:
@@ -215,10 +209,8 @@ class TraversalTest(unittest.TestCase):
         state = self.mlt.genericBreadthFirstTraversal(self._inner_test_traversal,({},{},0,))
         self.assertTrue( state[2] == (len(self.mltlist)**2 + len(self.mltlist)))
 
-    ###
 
-
-    #test buildDictionnary
+#### test buildDictionnary
         #prblm with the traversal, no node explored...
     def test_buildDictWithoutPrefix(self):
         dico = self.mlt.buildDictionnary()
@@ -287,7 +279,9 @@ class TraversalTest(unittest.TestCase):
                     #self.assertTrue(len(k) > 1 and k[0] == key1 and k[1] == key2)
                     keys = tuple(keys)
                     self.assertTrue(keys in self.keyValue and self.keyValue[keys] == v)
-    
+
+#### update
+
     #test update process
         #changer toutes les valeurs et vérifier que c'est bon
     def test_update(self):
@@ -363,7 +357,7 @@ class TraversalTest(unittest.TestCase):
                 self.mlt.remove( (key1,key2) )
                 del self.keyValue[(key1,key2,)]
         
-        #try to remove them again
+        #try to remove them againje suis en train de tester.  J
         for key1 in self.mltlist:
             self.assertRaises(pathNotExistsTriesException,self.mlt.remove, (key1,))
             for key2 in self.mltlist:
@@ -373,6 +367,126 @@ class TraversalTest(unittest.TestCase):
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()
 
+#empty path
+
+    def test_insertEmptyPathAlone(self):
+        mlt = multiLevelTries()
+        mlt.insert([],"empty path")
+        mltnode = mlt.search()
+        self.assertTrue(mltnode != None and mltnode.value == "empty path")
+        
+    def test_insertEmptyPathNotAlone(self):
+        #self.mlt = multiLevelTries()
+        self.mlt.insert([],"empty path")
+        mltnode = self.mlt.search()
+        self.assertTrue(mltnode != None and mltnode.value == "empty path")
     
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+    
+    def test_insertExistingEmptyPathAlone(self):
+        mlt = multiLevelTries()
+        mlt.insert([],"empty path")
+        self.assertRaises(pathExistsTriesException, mlt.insert,[],"plop")
+        
+    def test_insertExistingEmptyPathNotAlone(self):
+        #self.mlt = multiLevelTries()
+        self.mlt.insert([],"empty path")
+        self.assertRaises(pathExistsTriesException, self.mlt.insert,[],"plop")
+        
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+    
+    def test_removeEmptyPathAlone(self):
+        mlt = multiLevelTries()
+        mlt.insert([],"empty path")
+        mlt.remove()
+        mltnode = mlt.search()
+        self.assertTrue(mltnode == None)
+        
+    def test_removeEmptyPathNotAlone(self):
+        #self.mlt = multiLevelTries()
+        self.mlt.insert([],"empty path")
+        self.mlt.remove()
+        mltnode = self.mlt.search()
+        self.assertTrue(mltnode == None)
+        
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+        
+    def test_updateEmptyPathAlone(self):
+        mlt = multiLevelTries()
+        mlt.insert([],"empty path")
+        mltnode = mlt.search()
+        mlt.update((), "plop")
+        self.assertTrue(mltnode != None and mltnode.value == "plop")
+        
+    def test_updateEmptyPathNotAlone(self):
+        #self.mlt = multiLevelTries()
+        self.mlt.insert([],"empty path")
+        mltnode = self.mlt.search()
+        self.mlt.update((), "plop")
+        self.assertTrue(mltnode != None and mltnode.value == "plop")
+        
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+
+    
+
+### remove branch
+    #remove branch with an empty tree, empty list or random path
+        #remove branch in level 0 (empty list), level 1, level 2, ...
+        
+    def test_removeBranchEmptyPath(self):
+        self.mlt.removeBranch()
+        self.assertTrue(self.mlt.isEmpty())
+        
+    def test_removeBranchLevel1(self):
+        self.mlt.removeBranch(["a"])
+        
+        #remove from dict every key that starts with "a"
+        newDico = {}
+        for k,v in self.keyValue.iteritems():
+            if len(k) > 0 and k[0] == "a":
+                continue
+            newDico[k] = v
+        self.keyValue = newDico
+        
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+        
+    def test_removeBranchLevel1(self):
+        self.mlt.removeBranch(["a", "a"])
+        
+        #remove from dict every key that starts with "a","a"
+        newDico = {}
+        for k,v in self.keyValue.iteritems():
+            if len(k) > 1 and k[0] == "a" and k[1] == "a":
+                continue
+            newDico[k] = v
+        self.keyValue = newDico
+        
+        #check the tree
+        self.test_everyKeyInTheTree()
+        self.test_everyValueCorrespondToAKey()
+
+### TODO move
+    #test move, from a unexisten to an existent, from an existent to an unexistent, from existent to existent, ...
+        #from level 0 to level 1, from level 1 to level 0, from level 2 to level 0, from level 2 to level 1, from level to level 2, ...
+    
+#TEST LIST TODO
+    #produce an ambiguousPathExceptionWithLevel in a search (any search that call SearchNode)
+        #on level 0, level 1, level 2, ...
+    #setStopTraversal on an empty node of level 0 (empty list), level 1, level 2, ...
+    #test advanced search (how to test every case ?)
+    #test traversal with prefix(not empty) included or not included at level 0 (empty list),1, 2,... (depth and breadth)
+    
+    
+
 if __name__ == '__main__':
     unittest.main()

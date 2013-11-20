@@ -88,7 +88,16 @@ class multiLevelTries(object):
             raise noValueSetTriesException("(multiLevelTries) getValue, this node does not contain any value")
             
         return self.value
+    
+    def isEmpty(self):
+        """
+        This method return True if this multi level tries node has no child and does not store any value
         
+        @rtype: boolean
+        @return: True if the tree from this node is empty, False otherwise
+        """
+        
+        return self.localTries.isEmpty() and not self.valueSet
         
 ########### MAJOR FUNCTION (insert/remove/update) #######################################################################################################################################################
     
@@ -168,7 +177,7 @@ class multiLevelTries(object):
         #so it is not a good idea to return an element of this structure
     
     
-    def removeBranch(self,stringList):
+    def removeBranch(self,stringList=()):
         """
         This function remove an entire branch of the tree without any check about the child into this branch.
         The string path must be associated to a value node or a no value node
@@ -190,7 +199,7 @@ class multiLevelTries(object):
         self._remove(searchResult)
     
     
-    def remove(self, stringList):
+    def remove(self, stringList=()):
         """
         This function remove a path from the multi level tries.  This method only removed path with a value on it.
         The path must only be associated to a value node
@@ -270,7 +279,7 @@ class multiLevelTries(object):
 ############ SEARCH FUNCTION #########################################################################################################################################################################
     
     
-    def searchNode(self, stringList, onlyPerfectMatch=True):
+    def searchNode(self, stringList = (), onlyPerfectMatch=True):
         """
         This function is a the kernel part of the research algorithm of the multi level tries.
         Indeed, thes result are a stack of the different state of the research process.
@@ -341,7 +350,7 @@ class multiLevelTries(object):
         return multiLevelTriesSearchResult(stringList,triesLinked, onlyPerfectMatch)    
     
     
-    def search(self,stringList, onlyPerfectMatch = False) :
+    def search(self,stringList=(), onlyPerfectMatch = False) :
         """
         This function is the simpliest way to make a search in the multi level tries.
         The result will be the value of the path.  And if the path did not exist, an exception will be raised
