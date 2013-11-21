@@ -3,7 +3,8 @@
 
 import unittest
 from tries import multiLevelTries
-from tries.exception import pathExistsTriesException, pathNotExistsTriesException, triesException
+from tries.tries import triesSearchResult
+from tries.exception import *
 
 
 def buildList(minSize, maxSize, charset):
@@ -475,28 +476,156 @@ class mltriesTest(unittest.TestCase):
         self.test_everyKeyInTheTree()
         self.test_everyValueCorrespondToAKey()"""
 
-### advanced search
-    #TODO test on several level
+### TODO test advanced search (how to test every case ? no, only specific case)
+    #on level 0, level 1, level 2, ...
+      
+    #TODO XXX case 0 : empty path (found/not found)
     
+     
+    #case 1 : path not found
     def test_AdvancedSearchCaseNoMatch(self):
-        mltnode = self.mlt.advancedSearch(("k",))
+        ### level 1
+        searchResult = self.mlt.advancedSearch(("k",))
         
-        mltnode = self.mlt.advancedSearch(("a","k",))
+        self.assertTrue(not searchResult.isPathFound())
+        self.assertTrue(not searchResult.isValueFound())
+        #self.assertTrue(searchResult.getMltFound() ) #assert if result
+        self.assertRaises(pathNotExistsTriesException, searchResult.getMltFound) #assert if exception
+        #self.assertTrue(searchResult.getValue()) #assert if result
+        self.assertRaises(noValueSetTriesException, searchResult.getValue) #assert if exception
+        self.assertTrue( len(searchResult.getFoundTokenList()) == 0)
+        self.assertTrue(len(searchResult.getFoundCompletePath()) == 0)
+        self.assertTrue( len(searchResult.getNotFoundTokenList()) == 1 )
+        self.assertTrue(searchResult.getTokenFoundCount() == 0)
+        self.assertTrue(searchResult.getTokenNotFoundCount() == 1) 
+        self.assertTrue(searchResult.getTotalTokenCount() == 1)
+        self.assertTrue(searchResult.getTokenUsed() == 1)
+        self.assertTrue(searchResult.getTokenNotUsed() == 0)
+        self.assertTrue(not searchResult.isAvalueOnTheLastTokenFound())
+        #self.assertTrue(searchResult.getLastTokenFoundValue()) #assert if result
+        self.assertRaises(noValueSetTriesException, searchResult.getLastTokenFoundValue) #assert if exception
+        #self.assertTrue(searchResult.isAllTokenHasBeenConsumed()) 
+        self.assertTrue(not searchResult.isLastExploredTriesEmpty())
+        self.assertTrue(searchResult.isTokenNotFoundInLastTries())
+        self.assertTrue(not searchResult.isPathCorrespondsToNonValueNode())
+        self.assertTrue(searchResult.isPerfectSearchSet())
+        self.assertTrue(not searchResult.isAmbiguous())
+        #self.assertTrue(searchResult.getAdvancedTriesResult(tokenIndex))
+        for i in range(0,searchResult.getTokenUsed()):
+            astries =  searchResult.getAdvancedTriesResult(i)
+            self.assertTrue(astries != None)
+            self.assertTrue(isinstance(astries, triesSearchResult))
+            self.assertTrue(astries.isNoMatchChild())
         
-        mltnode = self.mlt.advancedSearch(("a","b","k",))
+        self.assertRaises(triesException,searchResult.getAdvancedTriesResult,searchResult.getTokenUsed())
         
-        #TODO
+        astries = searchResult.getAdvancedTriesResultForLastTokenExplored()
+        self.assertTrue(astries != None)
+        self.assertTrue(isinstance(astries, triesSearchResult))
+        self.assertTrue(astries.isNoMatchChild())
         
+        
+        ### level 2
+        searchResult = self.mlt.advancedSearch(("a","k",))
+        
+        self.assertTrue(not searchResult.isPathFound())
+        self.assertTrue(not searchResult.isValueFound())
+        #self.assertTrue(searchResult.getMltFound() ) #assert if result
+        self.assertRaises(pathNotExistsTriesException, searchResult.getMltFound) #assert if exception
+        #self.assertTrue(searchResult.getValue()) #assert if result
+        self.assertRaises(noValueSetTriesException, searchResult.getValue) #assert if exception
+        self.assertTrue( len(searchResult.getFoundTokenList()) == 1)
+        self.assertTrue(len(searchResult.getFoundCompletePath()) == 1)
+        self.assertTrue( len(searchResult.getNotFoundTokenList()) == 1 )
+        self.assertTrue(searchResult.getTokenFoundCount() == 1)
+        self.assertTrue(searchResult.getTokenNotFoundCount() == 1) 
+        self.assertTrue(searchResult.getTotalTokenCount() == 2)
+        self.assertTrue(searchResult.getTokenUsed() == 2)
+        self.assertTrue(searchResult.getTokenNotUsed() == 0)
+        self.assertTrue(searchResult.isAvalueOnTheLastTokenFound())
+        self.assertTrue(searchResult.getLastTokenFoundValue() == "a") #assert if result
+        #self.assertRaises(noValueSetTriesException, searchResult.getLastTokenFoundValue) #assert if exception
+        #self.assertTrue(searchResult.isAllTokenHasBeenConsumed()) 
+        self.assertTrue(not searchResult.isLastExploredTriesEmpty())
+        self.assertTrue(searchResult.isTokenNotFoundInLastTries())
+        self.assertTrue(not searchResult.isPathCorrespondsToNonValueNode())
+        self.assertTrue(searchResult.isPerfectSearchSet())
+        self.assertTrue(not searchResult.isAmbiguous())
+        #self.assertTrue(searchResult.getAdvancedTriesResult(tokenIndex))
+        for i in range(0,searchResult.getTokenUsed()):
+            astries =  searchResult.getAdvancedTriesResult(i)
+            self.assertTrue(astries != None)
+            self.assertTrue(isinstance(astries, triesSearchResult))
+            if i == searchResult.getTokenUsed()-1:
+                self.assertTrue(astries.isNoMatchChild())
+            else:
+                self.assertTrue(astries.isMatch())
+        
+        self.assertRaises(triesException,searchResult.getAdvancedTriesResult,searchResult.getTokenUsed())
+        
+        astries = searchResult.getAdvancedTriesResultForLastTokenExplored()
+        self.assertTrue(astries != None)
+        self.assertTrue(isinstance(astries, triesSearchResult))
+        self.assertTrue(astries.isNoMatchChild())
+        
+        #level 3
+        searchResult = self.mlt.advancedSearch(("a","b","k",))
+        
+        self.assertTrue(not searchResult.isPathFound())
+        self.assertTrue(not searchResult.isValueFound())
+        #self.assertTrue(searchResult.getMltFound() ) #assert if result
+        self.assertRaises(pathNotExistsTriesException, searchResult.getMltFound) #assert if exception
+        #self.assertTrue(searchResult.getValue()) #assert if result
+        self.assertRaises(noValueSetTriesException, searchResult.getValue) #assert if exception
+        self.assertTrue( len(searchResult.getFoundTokenList()) == 2)
+        self.assertTrue(len(searchResult.getFoundCompletePath()) == 2)
+        self.assertTrue( len(searchResult.getNotFoundTokenList()) == 1 )
+        self.assertTrue(searchResult.getTokenFoundCount() == 2)
+        self.assertTrue(searchResult.getTokenNotFoundCount() == 1) 
+        self.assertTrue(searchResult.getTotalTokenCount() == 3)
+        self.assertTrue(searchResult.getTokenUsed() == 3)
+        self.assertTrue(searchResult.getTokenNotUsed() == 0)
+        self.assertTrue(searchResult.isAvalueOnTheLastTokenFound())
+        print searchResult.getLastTokenFoundValue()
+        self.assertTrue(searchResult.getLastTokenFoundValue() == "ab") #assert if result
+        #self.assertRaises(noValueSetTriesException, searchResult.getLastTokenFoundValue) #assert if exception
+        #self.assertTrue(searchResult.isAllTokenHasBeenConsumed()) 
+        self.assertTrue(not searchResult.isLastExploredTriesEmpty())
+        self.assertTrue(searchResult.isTokenNotFoundInLastTries())
+        self.assertTrue(not searchResult.isPathCorrespondsToNonValueNode())
+        self.assertTrue(searchResult.isPerfectSearchSet())
+        self.assertTrue(not searchResult.isAmbiguous())
+        #self.assertTrue(searchResult.getAdvancedTriesResult(tokenIndex))
+        for i in range(0,searchResult.getTokenUsed()):
+            astries =  searchResult.getAdvancedTriesResult(i)
+            self.assertTrue(astries != None)
+            self.assertTrue(isinstance(astries, triesSearchResult))
+            if i == searchResult.getTokenUsed()-1:
+                self.assertTrue(astries.isNoMatchChild())
+            else:
+                self.assertTrue(astries.isMatch())
+        
+        self.assertRaises(triesException,searchResult.getAdvancedTriesResult,searchResult.getTokenUsed())
+        
+        astries = searchResult.getAdvancedTriesResultForLastTokenExplored()
+        self.assertTrue(astries != None)
+        self.assertTrue(isinstance(astries, triesSearchResult))
+        self.assertTrue(astries.isNoMatchChild())
+"""    
+    #case 1 : path found but no value
     def test_AdvancedSearchCasePathMatch(self):
         pass #TODO
-        
+    
+    #case 3 : ambiguous found
     def test_AdvancedSearchCaseAmbiguous(self):
         pass #TODO
-        
+    
+    #case 4 : found
     def test_AdvancedSearchCaseFound(self):
         pass #TODO
 
-### move test        
+### test move, from a unexisten to an existent, from an existent to an unexistent, from existent to existent, ...
+    #from level 0 to level 1
     def test_moveFrom0to1(self):
         mlt = multiLevelTries()
         mlt.insert((),"a")
@@ -516,6 +645,7 @@ class mltriesTest(unittest.TestCase):
         mltnode = mlt.search(("a",))
         self.assertTrue(mltnode != None and mltnode.value == "a")
 
+    #from level 1 to level 0
     def test_moveFrom1to0(self):
         mlt = multiLevelTries()
         mlt.insert(("a",),"a")
@@ -526,7 +656,8 @@ class mltriesTest(unittest.TestCase):
         
         mltnode = mlt.search()
         self.assertTrue(mltnode != None and mltnode.value == "a")
-
+    
+    #from level 2 to level 1
     def test_moveFrom1to2(self):
         mlt = multiLevelTries()
         mlt.insert(("a",),"a")
@@ -537,7 +668,8 @@ class mltriesTest(unittest.TestCase):
         
         mltnode = mlt.search(("a","a",))
         self.assertTrue(mltnode != None and mltnode.value == "a")
-        
+    
+    #from level 2 to level 1
     def test_moveFrom2to1(self):
         mlt = multiLevelTries()
         mlt.insert(("a","a",),"a")
@@ -548,7 +680,8 @@ class mltriesTest(unittest.TestCase):
         
         mltnode = mlt.search(("a",))
         self.assertTrue(mltnode != None and mltnode.value == "a")
-        
+    
+    #from level 0 to level 2
     def test_moveFrom0to2(self):
         mlt = multiLevelTries()
         mlt.insert((),"a")
@@ -560,6 +693,7 @@ class mltriesTest(unittest.TestCase):
         mltnode = mlt.search(("a","a",))
         self.assertTrue(mltnode != None and mltnode.value == "a")
 
+    #from level 2 to level 0
     def test_moveFrom2to0(self):
         mlt = multiLevelTries()
         mlt.insert(("a","a",),"a")
@@ -571,18 +705,18 @@ class mltriesTest(unittest.TestCase):
         mltnode = mlt.search()
         self.assertTrue(mltnode != None and mltnode.value == "a")
 
-### TODO move
-    #test move, from a unexisten to an existent, from an existent to an unexistent, from existent to existent, ...
-        #from level 0 to level 1, from level 1 to level 0, from level 2 to level 0, from level 2 to level 1, from level to level 2, ...
-    
+    #... (no need to go to level 3"""
+
+
+
 #TEST LIST TODO
     #produce an ambiguousPathExceptionWithLevel in a search (any search that call SearchNode)
-        #on level 0, level 1, level 2, ...
+        #with the method search()
+        
     #setStopTraversal on an empty node of level 0 (empty list), level 1, level 2, ...
-    #test advanced search (how to test every case ?)
+        #and try both traversals
+        
     #test traversal with prefix(not empty) included or not included at level 0 (empty list),1, 2,... (depth and breadth)
-    
-    
 
 if __name__ == '__main__':
     unittest.main()

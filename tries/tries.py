@@ -464,7 +464,7 @@ class tries():
         @return: an advanced result object, see its documentation to get more details
         """
         
-        result = triesSearchResult()
+        result = triesSearchResult(prefix)
         return self.searchNode(prefix, result._perfect, result._partial, result._noChild, result._false)
     
     
@@ -728,6 +728,9 @@ class tries():
     
 
 class triesSearchResult(object):
+    #TODO
+        #make test
+
     """
     This provide an advanced result object
     
@@ -736,10 +739,11 @@ class triesSearchResult(object):
     @licence: GPL v3
     """
 
-    def __init__(self):
+    def __init__(self, prefix):
         """
         this method init a triesSearchResult object
         """
+        self.prefix = prefix
         
         self.resultNode   = None #perfect or partial match
         self.previousNode = None #noMatchNode, falseNode, partial
@@ -748,30 +752,81 @@ class triesSearchResult(object):
         self.partialMatch = False
         self.noMatchChild = False
         self.falseResult  = False
+        
+        self.count        = 0
+        self.totalCount   = 0
     
-    def _perfect(node, prefix):
+    def _perfect(self,node, prefix):
         self.perfectMatch = True
         self.resultNode   = node
         self.previousNode = node.parent
         
-    def _partial(node, prefix, count, totalCount):
+        self.count        = len(node.key)
+        self.totalCount   = len(self.prefix)
+        return self
+        
+    def _partial(self,node, prefix, count, totalCount):
         self.partialMatch = True
         self.resultNode   = node
         self.previousNode = node.parent
         
-    def _noChild(node,prefix,count,totalCount):
+        self.count        = count
+        self.totalCount   = totalCount
+        
+        return self
+        
+    def _noChild(self,node,prefix,totalCount):
         self.noMatchChild = True
         self.previousNode = node
+        self.count        = len(node.key)
+        self.totalCount   = totalCount
+        
+        return self
     
-    def _false(node,prefix,count,totalCount):
+    def _false(self,node,prefix,count,totalCount):
         self.falseResult = True
         self.previousNode = node
+        
+        self.count        = count
+        self.totalCount   = totalCount 
+        
+        return self
     
     ########
     
+    def getPrefix(self):
+        """
+        This method return the prefix used during the search process
+        
+        @rtype: string
+        @return: the string used during for the search
+        """
+        
+        return self.prefix
+    
+    def getTotalCharFoundCount(self):
+        """
+        This method returns the total count of caracter found in the tree
+        
+        @rtype: integer
+        @return: the total count of caracter found in the tree
+        """
+        
+        return self.totalCount
+    
+    def getCharFoundOnLastExploredNodeCount(self):
+        """
+        This method returns the total count of caracter found in the last explored node
+        
+        @rtype: integer
+        @return: the total count of caracter found in the last explored node
+        """
+        
+        return self.totalCount
+    
     def isPerfectMatch(self):
         """
-        This method return True if the searched result is a perfect match, False otherwise
+        This method returns True if the searched result is a perfect match, False otherwise
         
         @rtype: boolean
         @return: True if there is a perfect match, False otherwise
@@ -781,7 +836,7 @@ class triesSearchResult(object):
     
     def isPartialMatch(self):
         """
-        This method return True if the searched result is a partial match, False otherwise
+        This method returns True if the searched result is a partial match, False otherwise
         
         @rtype: boolean
         @return: True if there is a partial match, False otherwise
@@ -790,7 +845,7 @@ class triesSearchResult(object):
     
     def isMatch(self):
         """
-        This method return True if the searched result is a match (perfect or partial), False otherwise
+        This method returns True if the searched result is a match (perfect or partial), False otherwise
         
         @rtype: boolean
         @return: True if there is a partial or pefect match, False otherwise
@@ -800,7 +855,7 @@ class triesSearchResult(object):
     
     def isNoMatchChild(self):
         """
-        This method return True if the searched result is a no match child, False otherwise
+        This method returns True if the searched result is a no match child, False otherwise
         
         @rtype: boolean
         @return: True if the searched result is a no match child, False otherwise
@@ -810,7 +865,7 @@ class triesSearchResult(object):
         
     def isFalseResult(self):
         """
-        This method return True if the searched result is a false result, False otherwise
+        This method returns True if the searched result is a false result, False otherwise
         
         @rtype: boolean
         @return: True if the searched result is a false result, False otherwise
@@ -820,7 +875,7 @@ class triesSearchResult(object):
     
     def getNode(self):
         """
-        This method return the found node if there is one, None otherwise
+        This method returns the found node if there is one, None otherwise
         
         @rtype: tries or None
         @return: the node found if there is a found node
@@ -830,7 +885,7 @@ class triesSearchResult(object):
         
     def getPreviousNode(self):
         """
-        This method return the last explored node in the search process if there is no match, otherwise it returns the parent node of the found node.  In the worst case, the returned value is the root node
+        This method returns the last explored node in the search process if there is no match, otherwise it returns the parent node of the found node.  In the worst case, the returned value is the root node
         
         @rtype: tries
         @return: the last node explored or the node just before the found node

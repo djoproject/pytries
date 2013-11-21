@@ -783,12 +783,12 @@ class multiLevelTriesSearchResult(object):
         """
         
         
-        if not self.isValueFound(self):
+        if not self.isValueFound():
             raise noValueSetTriesException("(multiLevelTriesSearchResult) getValue, no value found on this path")
         
         return self.existingPath[-1][2].value
     
-    def getFoundToken(self):
+    def getFoundTokenList(self):
         """
         This method returns a list with the tokens found
         
@@ -817,7 +817,7 @@ class multiLevelTriesSearchResult(object):
         return ret
     
     
-    def getNotFoundToken(self):
+    def getNotFoundTokenList(self):
         """
         This method returns a list with the tokens not found
         
@@ -825,7 +825,7 @@ class multiLevelTriesSearchResult(object):
         @return: the list of tokens not found
         """
         
-        return self.stringList[:self.tokenFoundCount]
+        return self.stringList[self.tokenFoundCount:]
     
     
     def getTokenFoundCount(self):
@@ -909,19 +909,19 @@ class multiLevelTriesSearchResult(object):
         if not self.isAvalueOnTheLastTokenFound():
             raise noValueSetTriesException("(multiLevelTriesSearchResult) getLastTokenFoundValue, no value on the last token found")
         
-        return self.existingPath[self.tokenFoundCount-1][1].value
+        return self.existingPath[self.tokenFoundCount-1][2].value
     
     
-    def isAllTokenHasBeenConsumed(self):
-        """
+    """def isAllTokenHasBeenConsumed(self): #XXX equilavent to isPathFound
+        
         This method returns True if every token have been found into the mltries.  
         This not means there is a match, maybe the node found does not contain any value.
         
         @rtype: boolean
         @return: True if every tokens have been found into the tree, False otherwise
-        """
         
-        return len(self.stringList) == self.tokenFoundCount
+        
+        return len(self.stringList) == self.tokenFoundCount"""
     
     
     ### not found reason
@@ -1010,7 +1010,7 @@ class multiLevelTriesSearchResult(object):
             raise triesException("(multiLevelTriesSearchResult) getAdvancedTriesResult, need at least one string token, there is no token on empty path")
         
         #index is valid ?
-        if len(self.existingPath) < tokenIndex or tokenIndex < 0:
+        if len(self.existingPath) <= tokenIndex or tokenIndex < 0:
             if self.getTokenUsed() > 1:
                 raise triesException("(multiLevelTriesSearchResult) getAdvancedTriesResult, invalid index, the available index are [0-"+str(self.getTokenUsed()-1)+"]")
             else:
