@@ -12,7 +12,7 @@ class ElementaryTest(object):
     #1.1 every inserted key are in the tree
     def test_EveryInsertedKeyMustBeInTree(self):
         for key,value in self.keyValue.iteritems():
-            node = self.t.searchPerfect(key)
+            node = self.t.search(key, True)
             #print key + " vs " + value.key + " vs "+node.key
             self.assertTrue( node != None and node.isValueSet() and node.value == key)
             #This condition can be true, because key and value are moved in the insert process of the other nodes  and node == value)

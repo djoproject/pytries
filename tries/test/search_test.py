@@ -33,6 +33,29 @@ class SearchTest(unittest.TestCase, ElementaryTest):
         
     def test_falseResult(self):
         self.assertTrue(self.t.searchNode("beet",lambda *a:0, lambda *a:1, lambda *a:2, lambda *a:3 ) == 3)
+    
+    #TODO make advanced search test
+        #case perfect :
+    def test_advancedResultPerfec(self):
+        self.assertTrue(result.getPrefix() == "toto")
+        self.assertTrue(result.getTotalCharFoundCount() > 0)
+        self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
+        self.assertTrue(result.isPerfectMatch())
+        self.assertTrue(not result.isPartialMatch())
+        self.assertTrue(result.isMatch())
+        self.assertTrue(not result.isNoMatchChild())
+        self.assertTrue(not result.isFalseResult())
+        self.assertTrue(result.getNode() != None)
+        self.assertTrue(result.getPreviousNode()!= None)
+        self.assertTrue(not result.isAmbiguous())
         
+        #TODO case partial :
+    
+        #TODO case false :
+        
+        #TODO case no child :
+        
+        #TODO case ambiguous :   
+    
 if __name__ == '__main__':
     unittest.main()

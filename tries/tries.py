@@ -412,10 +412,10 @@ class tries():
                 #the searched prefix has a unknown suffix in the tree
                 return falseResult(currentNode,prefix,count,totalCount) # bee != bear
     
-    #TODO merge searchPerfect et search, ajouter un boolean pour distinguer la perfect et la partial
+    #merge searchPerfect et search, ajouter un boolean pour distinguer la perfect et la partial
         #comme pour le mltries
-    def searchPerfect(self,key): 
-        """
+    """def searchPerfect(self,key): 
+        
         This search looks for a perfect key match and return a value node or an non value node
         
         @type key: string
@@ -423,30 +423,37 @@ class tries():
         @rtype: Tries or None
         @return: a perfect match value Node or None
         @raise triesException if the prefix is not a string type
-        """
+        
         
         Node = self.searchNode(key,returnNode)
         if Node != None and Node.isValueSet():
             return Node
-        return None
+        return None"""
     
 
-    def search(self,prefix): 
+    def search(self,prefix, perfectMatch=False): 
         """
         this function looks for a complete path corresponding to the prefix string given
         
         @type prefix: string
         @param prefix: the prefix to search in the tree
+        @type perfectMatch: boolean
+        @param perfectMatch: if set to True, only the perfect match will be allowed in the search process
         @rtype: tries
         @return: a value node
         @raise triesException if the prefix is not a string or if the string does not correspond to a complete path
         """
         
-        Node = self.searchNode(prefix,returnNode,returnNode)
+        #manage perfectMatch
+        if perfectMatch:
+            Node = self.searchNode(prefix,returnNode)
+        else:
+            Node = self.searchNode(prefix,returnNode,returnNode)
+        
         if Node != None:
             if Node.isValueSet():
                 return Node
-            else:
+            elif not perfectMatch: #an ambiguity can only occur in partial result, with perfect result, the answer is always found or not
                 #ambiguous result, raise
                 raise ambiguousPathException("the prefix <"+str(prefix)+"> corresponds to multiple node")
         
@@ -460,6 +467,8 @@ class tries():
         
         @type prefix: string
         @param prefix: the prefix of the key to search in the tree
+        @type perfectMatch: boolean
+        @param perfectMatch: if set to True, only the perfect match will be allowed in the search process
         @rtype: triesSearchResult
         @return: an advanced result object, see its documentation to get more details
         """
@@ -728,9 +737,6 @@ class tries():
     
 
 class triesSearchResult(object):
-    #TODO
-        #make test
-
     """
     This provide an advanced result object
     
@@ -893,4 +899,14 @@ class triesSearchResult(object):
         
         return self.previousNode
     
-
+    def isAmbiguous(self):
+        """
+        This method returns True if the result is ambiguous.  
+        The algorithm has found a Node corresponding to the prefix but this node is an intermediate node and does not store any value.
+        So there is at least two sub node that can correspond to the looking path.
+        
+        @rtype: boolean
+        @return: True if the result is ambiguous, False otherwise
+        """
+        
+        return self.isMatch() and not self.resultNode.valueSet
