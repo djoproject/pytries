@@ -36,7 +36,9 @@ class SearchTest(unittest.TestCase, ElementaryTest):
     
     #TODO make advanced search test
         #case perfect :
-    def test_advancedResultPerfec(self):
+    def test_advancedResultPerfect(self):
+        self.t.advancedSearch("beer")
+        
         self.assertTrue(result.getPrefix() == "toto")
         self.assertTrue(result.getTotalCharFoundCount() > 0)
         self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
@@ -50,12 +52,67 @@ class SearchTest(unittest.TestCase, ElementaryTest):
         self.assertTrue(not result.isAmbiguous())
         
         #TODO case partial :
-    
+    def test_advancedResultPartial(self):
+        self.t.advancedSearch("beer")
+        
+        self.assertTrue(result.getPrefix() == "toto")
+        self.assertTrue(result.getTotalCharFoundCount() > 0)
+        self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
+        self.assertTrue(result.isPerfectMatch())
+        self.assertTrue(not result.isPartialMatch())
+        self.assertTrue(result.isMatch())
+        self.assertTrue(not result.isNoMatchChild())
+        self.assertTrue(not result.isFalseResult())
+        self.assertTrue(result.getNode() != None)
+        self.assertTrue(result.getPreviousNode()!= None)
+        self.assertTrue(not result.isAmbiguous())
         #TODO case false :
+    def test_advancedResultFalse(self):
+        self.t.advancedSearch("plop")
         
-        #TODO case no child :
-        
-        #TODO case ambiguous :   
+        self.assertTrue(result.getPrefix() == "toto")
+        self.assertTrue(result.getTotalCharFoundCount() > 0)
+        self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
+        self.assertTrue(result.isPerfectMatch())
+        self.assertTrue(not result.isPartialMatch())
+        self.assertTrue(result.isMatch())
+        self.assertTrue(not result.isNoMatchChild())
+        self.assertTrue(not result.isFalseResult())
+        self.assertTrue(result.getNode() != None)
+        self.assertTrue(result.getPreviousNode()!= None)
+        self.assertTrue(not result.isAmbiguous())
     
+    #TODO case no child :
+    def test_advancedResultNoChild(self):
+        self.t.advancedSearch("bete")
+        
+        self.assertTrue(result.getPrefix() == "toto")
+        self.assertTrue(result.getTotalCharFoundCount() > 0)
+        self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
+        self.assertTrue(result.isPerfectMatch())
+        self.assertTrue(not result.isPartialMatch())
+        self.assertTrue(result.isMatch())
+        self.assertTrue(not result.isNoMatchChild())
+        self.assertTrue(not result.isFalseResult())
+        self.assertTrue(result.getNode() != None)
+        self.assertTrue(result.getPreviousNode()!= None)
+        self.assertTrue(not result.isAmbiguous())
+        
+    #TODO XXX case ambiguous :   
+    def test_advancedResultNoChild(self):
+        self.t.advancedSearch("") #TODO
+        
+        self.assertTrue(result.getPrefix() == "toto")
+        self.assertTrue(result.getTotalCharFoundCount() > 0)
+        self.assertTrue(result.getCharFoundOnLastExploredNodeCount() > 0)
+        self.assertTrue(result.isPerfectMatch())
+        self.assertTrue(not result.isPartialMatch())
+        self.assertTrue(result.isMatch())
+        self.assertTrue(not result.isNoMatchChild())
+        self.assertTrue(not result.isFalseResult())
+        self.assertTrue(result.getNode() != None)
+        self.assertTrue(result.getPreviousNode()!= None)
+        self.assertTrue(not result.isAmbiguous())
+        
 if __name__ == '__main__':
     unittest.main()
