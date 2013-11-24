@@ -910,3 +910,4 @@ class triesSearchResult(object):
         """
         
         return self.isMatch() and not self.resultNode.valueSet
+        
