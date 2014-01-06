@@ -369,7 +369,7 @@ class tries():
         """
         
         #must be a valid string
-        if prefix == None or type(prefix) != str:# or len(prefix) == 0:
+        if prefix == None or (type(prefix) != str and type(prefix) != unicode):# or len(prefix) == 0:
             raise triesException("the searched key must be a string")# with a length bigger than zero")
         
         currentNode   = self   #The starting point of the search is the current node
