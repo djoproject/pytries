@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
 
-#Copyright (C) 2012 Jonathan Delvaux <jonathan.delvaux@uclouvain.be>
+#Copyright (C) 2012 Jonathan Delvaux <pytries@djoproject.net>
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ setup(name='Pytries',
       version='1.0',
       description='Python tries structure',
       author='Jonathan Delvaux',
-      author_email='djo938@gmail.com',
+      author_email='pytries@djoproject.net',
       url='https://github.com/djo938/pytries',
       packages=['tries'],
       classifiers=[
