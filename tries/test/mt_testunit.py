@@ -72,10 +72,10 @@ class mltriesTest(unittest.TestCase):
 
     #every inserted stringList are in the tree
     def test_everyKeyInTheTree(self):
-        for k,v in self.keyValue.iteritems():
+        for k,v in self.keyValue.items():
             mlt = self.mlt.search(k)
             if mlt == None:
-                print "missing key <",k,">"
+                print("missing key <",k,">")
             self.assertTrue(mlt != None and mlt.value == v)
     
     
@@ -360,7 +360,7 @@ class mltriesTest(unittest.TestCase):
         dico = self.mlt.buildDictionnary()
         self.assertTrue( len(dico) == len(self.keyValue))
         
-        for k,v in dico.iteritems():
+        for k,v in dico.items():
             self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
 
     def test_buildDictWithPrefix(self):
@@ -372,13 +372,13 @@ class mltriesTest(unittest.TestCase):
             #print key, len(dico), expectedValueCount
             
             #i = 0
-            #for k,v in dico.iteritems():
+            #for k,v in dico.items():
             #    print i, k
             #    i+=1
             
             self.assertTrue( len(dico) == expectedValueCount)
 
-            for k,v in dico.iteritems():
+            for k,v in dico.items():
                 self.assertTrue(len(k) > 0 and k[0] == key)
                 self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
         
@@ -390,7 +390,7 @@ class mltriesTest(unittest.TestCase):
                 #print len(dico), expectedValueCount
                 self.assertTrue( len(dico) == expectedValueCount)
                 
-                for k,v in dico.iteritems():
+                for k,v in dico.items():
                     self.assertTrue(len(k) > 1 and k[0] == key1 and k[1] == key2)
                     self.assertTrue(k in self.keyValue and self.keyValue[k] == v)
 
@@ -403,7 +403,7 @@ class mltriesTest(unittest.TestCase):
             #print key, len(dico), expectedValueCount
             self.assertTrue( len(dico) == expectedValueCount)
             
-            for k,v in dico.iteritems():
+            for k,v in dico.items():
                 #self.assertTrue(len(k) > 0 and k[0] == key)
                 keys = [key]
                 keys.extend(k)
@@ -417,7 +417,7 @@ class mltriesTest(unittest.TestCase):
                 dico = self.mlt.buildDictionnary( (key1,key2,) , False, False)
                 self.assertTrue( len(dico) == expectedValueCount)
                 
-                for k,v in dico.iteritems():
+                for k,v in dico.items():
                     keys = [key1, key2]
                     keys.extend(k)
                     #self.assertTrue(len(k) > 1 and k[0] == key1 and k[1] == key2)
@@ -430,12 +430,12 @@ class mltriesTest(unittest.TestCase):
         #changer toutes les valeurs et vérifier que c'est bon
     def test_update(self):
         newKeyVal = {}
-        for k,v in self.keyValue.iteritems():
+        for k,v in self.keyValue.items():
             newVal = "plop"+v
             self.mlt.update(k, newVal)
             newKeyVal[k] = newVal
     
-        for k,v in newKeyVal.iteritems():
+        for k,v in newKeyVal.items():
             mlt = self.mlt.search(k)
             self.assertTrue(mlt != None and mlt.value == v)
             #self.assertTrue( self.mlt.search(k) == v)
@@ -446,7 +446,7 @@ class mltriesTest(unittest.TestCase):
     #test the remove operation
         #remove all
     def test_removeAll(self):
-        for k,v in self.keyValue.iteritems():
+        for k,v in self.keyValue.items():
             self.mlt.remove(k)
             
         self.keyValue = {}
@@ -594,7 +594,7 @@ class mltriesTest(unittest.TestCase):
         
         #remove from dict every key that starts with "a"
         newDico = {}
-        for k,v in self.keyValue.iteritems():
+        for k,v in self.keyValue.items():
             if len(k) > 0 and k[0] == "a":
                 continue
             newDico[k] = v
@@ -609,7 +609,7 @@ class mltriesTest(unittest.TestCase):
         
         #remove from dict every key that starts with "a","a"
         newDico = {}
-        for k,v in self.keyValue.iteritems():
+        for k,v in self.keyValue.items():
             if len(k) > 1 and k[0] == "a" and k[1] == "a":
                 continue
             newDico[k] = v

@@ -11,7 +11,7 @@ class ElementaryTest(object):
 #1 INSERT
     #1.1 every inserted key are in the tree
     def test_EveryInsertedKeyMustBeInTree(self):
-        for key,value in self.keyValue.iteritems():
+        for key,value in self.keyValue.items():
             node = self.t.search(key, True)
             #print key + " vs " + value.key + " vs "+node.key
             self.assertTrue( node != None and node.isValueSet() and node.value == key)
