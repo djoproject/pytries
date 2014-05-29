@@ -17,8 +17,8 @@
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-from exception import triesException, noValueSetTriesException, pathExistsTriesException, pathNotExistsTriesException, ambiguousPathException
-from utils import noneFunc, charInCommons, returnNode
+from .exception import triesException, noValueSetTriesException, pathExistsTriesException, pathNotExistsTriesException, ambiguousPathException
+from .utils import noneFunc, charInCommons, returnNode
 
 class tries():
     """
@@ -151,7 +151,7 @@ class tries():
         
         #the node must exist and be a value node
         if Node == None or not Node.isValueSet():
-		    raise pathNotExistsTriesException("key not found")
+            raise pathNotExistsTriesException("key not found")
         
         ### Case 1 : No Child ###
         if len(Node.childs) == 0:

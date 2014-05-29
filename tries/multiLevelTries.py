@@ -16,8 +16,8 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from tries import *
-from exception import *
+from .tries import *
+from .exception import *
 
 
 class multiLevelTries(object):
@@ -639,7 +639,7 @@ class multiLevelTries(object):
             if not current.localTries.isEmpty() and (ignoreStopTraversal or not current.stopTraversal):
                 keyValue = current.localTries.getKeyValue()
                 
-                for k,v in keyValue.iteritems():
+                for k,v in keyValue.items():
                     newPath = currentPath[:]
                     newPath.append(k)
                     Queue.append( (v, level+1, newPath,))       

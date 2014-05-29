@@ -18,5 +18,5 @@
 
 #build alias
 #from tries.test import test
-from tries import tries
-from multiLevelTries import multiLevelTries
+from .tries import tries
+from .multiLevelTries import multiLevelTries
