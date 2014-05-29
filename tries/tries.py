@@ -533,8 +533,11 @@ class tries():
             if len(current.key) > 0:
                 currentPath = currentPath[:-len(current.key)]
             
-            #back to the parent
             del current.traversed
+            if current == self:
+                return traversalState
+
+            #back to the parent
             current = current.parent
         
         return traversalState

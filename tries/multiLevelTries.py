@@ -624,7 +624,6 @@ class multiLevelTries(object):
                 traversalState = (searchResult.getFoundCompletePath(),executeOnNode,initState,)
                 methToExecute  = startingNode._traversalWithPrefix
         
-        
         #init the Queue with every key value of the first level tries
         #keyValue = self.localTries.getKeyValue()
         #for k,v in keyValue.iteritems():
@@ -665,7 +664,7 @@ class multiLevelTries(object):
         @return: 
         """
         
-        return repr(self.localTries)
+        return "multiLevelTries (localTries="+repr(self.localTries)+", valueSet="+str(self.valueSet)+")"
     
     
     def _inner_buildDictionnary(self, path, node, state, level):
