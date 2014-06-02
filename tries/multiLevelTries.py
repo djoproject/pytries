@@ -425,6 +425,16 @@ class multiLevelTries(object):
 
         return searchResult.getMltFound()
     
+    def isStopTraversal(self, stringList):
+        #look after the string
+        searchResult = self.searchNode(stringList, True)
+
+        #check if a node (value or not) exist on this path
+        if not searchResult.isPathFound(): #len(existingPath) < len(stringList) or 
+            raise pathNotExistsTriesException("(multiLevelTries) isStopTraversal, The path <"+" ".join(stringList)+"> does not exist in the multi tries")
+        
+        #update state
+        return searchResult.getMltFound().stopTraversal
     
     #def _traversalWithPrefix(self, currentPath, current, level):
     def _traversalWithPrefix(self, path, node, state, level):
