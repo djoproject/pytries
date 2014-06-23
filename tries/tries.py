@@ -291,8 +291,9 @@ class tries():
         def partial(Node,key,count,totalCount):
             #split the key string of the old node and create a new value node with the existing value
             tempTries = tries(Node.key[count:], Node)
-            tempTries.setValue(Node.value)
-            Node.unsetValue()
+            if Node.isValueSet():
+                tempTries.setValue(Node.value)
+                Node.unsetValue()
             
             #the new node become the parent of the existing childs
             tempTries.childs = Node.childs
@@ -311,10 +312,13 @@ class tries():
             return Node
         
         #CASE 4 : the suffix of the searched key is not include in any existing string path
-        def false(Node,key,count,totalCount):                            
+        def false(Node,key,count,totalCount): 
             #create an intermediate node
             tempTries = tries(Node.key[count:], Node)
-            tempTries.setValue(Node.value)
+            
+            if Node.isValueSet():
+                tempTries.setValue(Node.value)
+                Node.unsetValue()
             
             #transfert the child of the previous node to the new intermediate node
             tempTries.childs = Node.childs
@@ -331,7 +335,6 @@ class tries():
             
             #mise a jour du noeud courant, non value node, devient un noeud pivot
             Node.childs = [tempTries,newTries]
-            Node.unsetValue()
             
             return newTries
         

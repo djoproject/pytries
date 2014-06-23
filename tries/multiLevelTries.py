@@ -644,7 +644,7 @@ class multiLevelTries(object):
         while len(Queue) > 0:
             #dequeu current node
             current, level, currentPath = Queue.pop(0)
-            
+
             #add every child in the Queue
             if not current.localTries.isEmpty() and (ignoreStopTraversal or not current.stopTraversal):
                 keyValue = current.localTries.getKeyValue()
