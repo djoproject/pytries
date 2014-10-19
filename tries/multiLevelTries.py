@@ -381,7 +381,6 @@ class multiLevelTries(object):
         @param onlyPerfectMatch: if this param is set to True, only the perfect matching will be accepted in the search algorithm
         @rtype: multiLevelTriesSearchResult
         @return: the details result of the search inside an instance of multiLevelTriesSearchResult
-        @raise ambiguousPathExceptionWithLevel: if onlyPerfectMatch is set to False and there is an ambiguous result inside a inner tries search
         """
         
         #make the search and fill a result object
