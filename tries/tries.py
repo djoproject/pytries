@@ -499,6 +499,12 @@ class tries():
         
         current        = self
         currentPath    = ""
+        
+        while current.parent is not None:
+            currentPath = current.parent.key + currentPath
+            current = current.parent
+            
+        current        = self
         traversalState = initState
         level          = 0
          
@@ -563,6 +569,11 @@ class tries():
         Queue          = [(self,level,self.key)]
         traversalState = initState
         currentPath    = ""
+        
+        current = self
+        while current.parent is not None:
+            currentPath = current.parent.key + currentPath
+            current = current.parent
         
         while len(Queue) > 0:
             #dequeu current node
