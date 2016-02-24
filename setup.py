@@ -20,7 +20,7 @@
 from distutils.core import setup
 
 setup(name='Pytries',
-      version='1.0',
+      version='1.2',
       description='Python tries structure',
       author='Jonathan Delvaux',
       author_email='pytries@djoproject.net',
